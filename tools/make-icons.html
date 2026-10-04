@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Icon maker</title>
+<style>html,body{margin:0;padding:0;background:#fff;overflow:hidden}canvas{display:block}</style>
+</head>
+<body>
+<!-- Draws the app icon. Open with a hash like #512-any, #192-any or #512-maskable,
+     set the browser window to exactly that size, and screenshot the page. -->
+<canvas id="c"></canvas>
+<script>
+(function () {
+  var parts = (location.hash || "#512-any").replace("#", "").split("-");
+  var S = parseInt(parts[0], 10) || 512;
+  var maskable = parts[1] === "maskable";
+
+  var c = document.getElementById("c");
+  c.width = S; c.height = S;
+  var g = c.getContext("2d");
+
+  var GREEN = "#1f6f4a";
+  var GREEN_DARK = "#17563a";
+  var PALE = "#a9d8c0";
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  /* background */
+  var grad = g.createLinearGradient(0, 0, S, S);
+  grad.addColorStop(0, GREEN);
+  grad.addColorStop(1, GREEN_DARK);
+  /* Full-bleed square on purpose. Phones round the corners themselves, and a
+     square avoids white corners because these PNGs have no transparency. */
+  g.fillStyle = grad;
+  g.fillRect(0, 0, S, S);
+
+  /* work in a 100 x 100 space, centred, so the drawing is the same at any size */
+  var contentScale = maskable ? 0.62 : 0.82;
+  var k = (S / 100) * contentScale;
+  g.translate((S - 100 * k) / 2, (S - 100 * k) / 2);
+  g.scale(k, k);
+
+  /* clipboard page */
+  g.fillStyle = "#ffffff";
+  roundRect(g, 24, 16, 52, 70, 7);
+  g.fill();
+
+  /* clip at the top */
+  g.fillStyle = PALE;
+  roundRect(g, 38, 9, 24, 12, 5);
+  g.fill();
+  g.fillStyle = "#ffffff";
+  roundRect(g, 42, 12, 16, 6, 3);
+  g.fill();
+
+  /* three ticked-off lines */
+  var rows = [36, 53, 70];
+  rows.forEach(function (y) {
+    g.strokeStyle = GREEN;
+    g.lineWidth = 4.5;
+    g.lineCap = "round";
+    g.lineJoin = "round";
+    g.beginPath();
+    g.moveTo(32, y);
+    g.lineTo(36, y + 4.5);
+    g.lineTo(44, y - 5);
+    g.stroke();
+
+    g.fillStyle = PALE;
+    roundRect(g, 49, y - 2.5, 20, 5, 2.5);
+    g.fill();
+  });
+})();
+</script>
+</body>
+</html>
