@@ -16,6 +16,8 @@ var Plant = (function () {
   var INFO   = window.PLANT_INFO || { name: "Plant Guide", site: "", revision: "" };
   var MAP    = window.PLANT_MAP || null;
   var ICONS  = window.MACHINE_ICONS || {};
+  var INTERVIEWS  = window.PLANT_INTERVIEWS || [];
+  var STEP_FIELDS = window.PLANT_STEP_FIELDS || [];
 
   var NODE_W = 108, NODE_H = 82;
   var mapZoom = 0;  /* 0 means "work it out from the screen size" */
@@ -100,6 +102,23 @@ var Plant = (function () {
     procsIn("support").forEach(function (p) {
       h += tile("#/p/" + p.id, p.icon || "\u2699", p.title, p.subtitle || "");
     });
+    h += '</div>';
+
+    if (INTERVIEWS.length) {
+      h += '<h2>Fill in your plant</h2>';
+      h += '<p class="lede">The questions to ask your boss, with a box under each one to type the answer ' +
+           'straight in. It saves as you go.</p>';
+      h += '<div class="tile-grid">';
+      INTERVIEWS.forEach(function (iv) {
+        var p = countAnswered(iv);
+        h += tile("#/interview/" + iv.id, iv.icon || "\u270E", iv.title,
+                  p.done + " of " + p.total + " answered", "sheet");
+      });
+      h += '</div>';
+    }
+
+    h += '<h2>Set up</h2><div class="tile-grid">';
+    h += tile("#/settings", "\u2699", "Settings", "Backup, restore and updates");
     h += '</div>';
 
     h += '<div class="callout info" style="margin-top:28px"><strong>This copy is not finished yet</strong>' +
@@ -656,6 +675,483 @@ var Plant = (function () {
     window.scrollTo(0, 0);
   }
 
+  /* ---------------- your answers (saved on this device) ---------------- */
+
+  var ANSWER_KEY = STORE_PREFIX + "answers";
+
+  function loadAnswers() {
+    try {
+      var raw = localStorage.getItem(ANSWER_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) { return {}; }
+  }
+
+  function saveAnswers(obj) {
+    try { localStorage.setItem(ANSWER_KEY, JSON.stringify(obj)); } catch (e) {
+      alert("This device would not let me save. The storage may be full.");
+    }
+  }
+
+  function countAnswered(iv) {
+    var a = loadAnswers(), total = 0, done = 0;
+    iv.sections.forEach(function (s) {
+      s.questions.forEach(function (q) {
+        total++;
+        var v = a[iv.id + "." + q.id];
+        if (q.type === "steps") {
+          if (Array.isArray(v) && v.some(function (st) {
+            return Object.keys(st).some(function (k) { return String(st[k] || "").trim(); });
+          })) done++;
+        } else if (String(v === undefined || v === null ? "" : v).trim()) done++;
+      });
+    });
+    return { total: total, done: done };
+  }
+
+  /* ---------------- interview sheets ---------------- */
+
+  var sendOpen = null;
+
+  function fieldHtml(key, q, value) {
+    if (q.type === "long") {
+      return '<textarea class="ans" rows="3" data-q="' + key + '" ' +
+             'placeholder="Type the answer here">' + esc(value) + "</textarea>";
+    }
+    return '<input class="ans" type="text" data-q="' + key + '" value="' + esc(value) + '" ' +
+           'placeholder="Type the answer here">';
+  }
+
+  function stepsHtml(key, arr) {
+    var h = '<div class="isteps">';
+    arr.forEach(function (st, i) {
+      h += '<div class="istep">';
+      h += '<div class="istep-head"><span class="step-no">' + (i + 1) + "</span>" +
+           '<button class="btn ghost small" onclick="Plant.removeStep(\'' + key + "'," + i + ')">Remove</button></div>';
+      STEP_FIELDS.forEach(function (f) {
+        var val = st[f.k] || "";
+        h += '<label class="field wide"><span>' + esc(f.label) + "</span>";
+        h += f.type === "long"
+          ? '<textarea class="ans" rows="2" data-q="' + key + '" data-i="' + i + '" data-f="' + f.k + '">' + esc(val) + "</textarea>"
+          : '<input class="ans" type="text" data-q="' + key + '" data-i="' + i + '" data-f="' + f.k + '" value="' + esc(val) + '">';
+        h += "</label>";
+      });
+      h += "</div>";
+    });
+    h += "</div>";
+    h += '<button class="btn primary" onclick="Plant.addStep(\'' + key + '\')">+ Add another step</button>';
+    if (!arr.length) {
+      h = '<p class="step-detail">No steps written down yet.</p>' + h;
+    }
+    return h;
+  }
+
+  function renderInterview(id) {
+    var iv = byId(INTERVIEWS, id);
+    if (!iv) return renderNotFound();
+    var a = loadAnswers();
+    var prog = countAnswered(iv);
+
+    var h = "";
+    h += "<h1>" + esc(iv.title) + "</h1>";
+    h += '<p class="lede">' + esc(iv.subtitle || "") + "</p>";
+    if (iv.intro) h += '<div class="callout info"><strong>How to get good answers</strong>' + esc(iv.intro) + "</div>";
+
+    h += '<div class="progress-wrap"><div class="progress-card">' +
+           '<span class="count" id="ansCount">' + prog.done + " of " + prog.total + " answered</span>" +
+           '<span class="bar"><span id="ansBar" style="width:' +
+             (prog.total ? Math.round(prog.done / prog.total * 100) : 0) + '%"></span></span>' +
+           '<span class="saved-flag" id="savedFlag">Saves as you type</span>' +
+         "</div></div>";
+
+    iv.sections.forEach(function (s, si) {
+      h += '<div class="card"><h3>' + esc(s.title) + "</h3>";
+      if (s.hint) h += '<p class="step-detail" style="margin-top:0">' + esc(s.hint) + "</p>";
+      s.questions.forEach(function (q) {
+        var key = iv.id + "." + q.id;
+        h += '<div class="qblock">';
+        h += '<label class="qlabel" for="' + key + '">' + esc(q.label) + "</label>";
+        if (q.hint) h += '<p class="qhint">' + esc(q.hint) + "</p>";
+        if (q.type === "steps") {
+          h += stepsHtml(key, Array.isArray(a[key]) ? a[key] : []);
+        } else {
+          h += fieldHtml(key, q, a[key] || "");
+        }
+        h += "</div>";
+      });
+      h += "</div>";
+      if (si === 0 && iv.linked) {
+        h += '<div class="btn-row"><button class="btn" onclick="Plant.go(\'#/p/' + iv.linked +
+             '\')">Open my example steps to read out to him</button></div>';
+      }
+    });
+
+    h += '<div class="btn-row">' +
+           '<button class="btn primary" onclick="Plant.showSend(\'' + iv.id + '\')">Send these answers to Kiro</button>' +
+           '<button class="btn" onclick="window.print()">Print blank or filled in</button>' +
+           '<button class="btn" onclick="Plant.go(\'#/\')">Back to the menu</button>' +
+         "</div>";
+
+    if (sendOpen === iv.id) {
+      var txt = interviewText(iv);
+      h += '<div class="card" id="sendCard"><h3>Your answers</h3>' +
+           '<p class="step-detail" style="margin-top:0">Copy this and paste it to me, or save it and send it ' +
+           'however suits. Only the questions you answered are in here.</p>' +
+           '<textarea id="sendText" class="sendbox" rows="14" readonly>' + esc(txt) + "</textarea>" +
+           '<div class="btn-row" style="margin-bottom:0">' +
+             '<button class="btn primary" onclick="Plant.copySend()">Copy it all</button>' +
+             (navigator.share ? '<button class="btn" onclick="Plant.shareSend(\'' + iv.id + '\')">Share</button>' : "") +
+             '<button class="btn" onclick="Plant.downloadSend(\'' + iv.id + '\')">Save as a file</button>' +
+           "</div></div>";
+    }
+
+    view.innerHTML = h;
+    bindAnswerInputs();
+    if (sendOpen === iv.id) {
+      var card = document.getElementById("sendCard");
+      if (card) card.scrollIntoView({ block: "start" });
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }
+
+  function bindAnswerInputs() {
+    var els = view.querySelectorAll(".ans");
+    for (var i = 0; i < els.length; i++) els[i].addEventListener("input", onAnswerInput);
+  }
+
+  var saveTimer = null;
+
+  function onAnswerInput(e) {
+    var el = e.target;
+    var qid = el.getAttribute("data-q");
+    var a = loadAnswers();
+
+    if (el.hasAttribute("data-i")) {
+      var i = Number(el.getAttribute("data-i"));
+      var f = el.getAttribute("data-f");
+      var arr = Array.isArray(a[qid]) ? a[qid] : [];
+      while (arr.length <= i) arr.push({});
+      arr[i][f] = el.value;
+      a[qid] = arr;
+    } else if (el.value === "") {
+      delete a[qid];
+    } else {
+      a[qid] = el.value;
+    }
+
+    saveAnswers(a);
+
+    var flag = document.getElementById("savedFlag");
+    if (flag) {
+      flag.textContent = "Saved";
+      flag.classList.add("just");
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(function () {
+        flag.textContent = "Saves as you type";
+        flag.classList.remove("just");
+      }, 1400);
+    }
+
+    var ivId = qid.split(".")[0];
+    var iv = byId(INTERVIEWS, ivId);
+    if (iv) {
+      var p = countAnswered(iv);
+      var c = document.getElementById("ansCount");
+      var b = document.getElementById("ansBar");
+      if (c) c.textContent = p.done + " of " + p.total + " answered";
+      if (b) b.style.width = (p.total ? Math.round(p.done / p.total * 100) : 0) + "%";
+    }
+  }
+
+  function addStep(key) {
+    var a = loadAnswers();
+    var arr = Array.isArray(a[key]) ? a[key] : [];
+    arr.push({});
+    a[key] = arr;
+    saveAnswers(a);
+    renderInterview(key.split(".")[0]);
+    var blocks = view.querySelectorAll(".istep");
+    if (blocks.length) blocks[blocks.length - 1].scrollIntoView({ block: "center" });
+  }
+
+  function removeStep(key, index) {
+    var a = loadAnswers();
+    var arr = Array.isArray(a[key]) ? a[key] : [];
+    var st = arr[index] || {};
+    var hasText = Object.keys(st).some(function (k) { return String(st[k] || "").trim(); });
+    if (hasText && !confirm("Delete step " + (index + 1) + "? What you typed in it will be lost.")) return;
+    arr.splice(index, 1);
+    a[key] = arr;
+    saveAnswers(a);
+    renderInterview(key.split(".")[0]);
+  }
+
+  function interviewText(iv) {
+    var a = loadAnswers();
+    var out = [];
+    out.push(iv.title.toUpperCase());
+    if (INFO.site) out.push("Site: " + INFO.site);
+    out.push("Filled in: " + new Date().toLocaleString());
+    out.push("");
+
+    iv.sections.forEach(function (s) {
+      var lines = [];
+      s.questions.forEach(function (q) {
+        var v = a[iv.id + "." + q.id];
+        if (q.type === "steps") {
+          if (!Array.isArray(v)) return;
+          var steps = [];
+          v.forEach(function (st, i) {
+            var bits = STEP_FIELDS.filter(function (f) { return String(st[f.k] || "").trim(); })
+                                  .map(function (f) { return f.label + ": " + String(st[f.k]).trim(); });
+            if (bits.length) steps.push("  " + (i + 1) + ". " + bits.join("  |  "));
+          });
+          if (steps.length) { lines.push("STEPS:"); lines = lines.concat(steps); lines.push(""); }
+        } else if (String(v === undefined || v === null ? "" : v).trim()) {
+          lines.push("Q: " + q.label);
+          lines.push("A: " + String(v).trim());
+          lines.push("");
+        }
+      });
+      if (lines.length) {
+        out.push("--- " + s.title + " ---");
+        out = out.concat(lines);
+      }
+    });
+
+    if (out.length <= 4) out.push("(Nothing filled in yet.)");
+    return out.join("\n");
+  }
+
+  function showSend(id) { sendOpen = id; renderInterview(id); }
+
+  function copySend() {
+    var box = document.getElementById("sendText");
+    if (!box) return;
+    var done = function () { alert("Copied. Now paste it into the chat with Kiro."); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(box.value).then(done, function () { legacyCopy(box, done); });
+    } else legacyCopy(box, done);
+  }
+
+  function legacyCopy(box, done) {
+    box.removeAttribute("readonly");
+    box.select();
+    box.setSelectionRange(0, box.value.length);
+    try { document.execCommand("copy"); done(); }
+    catch (e) { alert("Copying did not work on this phone. Press and hold the text to copy it by hand."); }
+    box.setAttribute("readonly", "readonly");
+  }
+
+  function shareSend(id) {
+    var iv = byId(INTERVIEWS, id);
+    if (!iv || !navigator.share) return;
+    navigator.share({ title: iv.title, text: interviewText(iv) })["catch"](function () {});
+  }
+
+  function downloadSend(id) {
+    var iv = byId(INTERVIEWS, id);
+    if (!iv) return;
+    saveTextFile(iv.id + "-answers-" + stamp() + ".txt", interviewText(iv), "text/plain");
+  }
+
+  /* ---------------- settings, backup, update ---------------- */
+
+  function stamp() {
+    var d = new Date();
+    function p(n) { return (n < 10 ? "0" : "") + n; }
+    return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+  }
+
+  function saveTextFile(name, text, mime) {
+    try {
+      var blob = new Blob([text], { type: (mime || "application/json") + ";charset=utf-8" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+    } catch (e) {
+      alert("This phone would not let me save the file. Use Copy instead and paste it somewhere safe.");
+    }
+  }
+
+  function allStored() {
+    var out = {};
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (k && k.indexOf(STORE_PREFIX) === 0) out[k] = localStorage.getItem(k);
+    }
+    return out;
+  }
+
+  function storedSummary() {
+    var answers = loadAnswers();
+    var answerCount = Object.keys(answers).length;
+    var tickLists = 0, ticks = 0;
+    PROCS.forEach(function (p) {
+      var st = loadState(p.id);
+      var n = Object.keys(st.checked || {}).length;
+      if (n) { tickLists++; ticks += n; }
+    });
+    return { answers: answerCount, tickLists: tickLists, ticks: ticks };
+  }
+
+  function renderSettings() {
+    var v = window.PLANT_VERSION || { version: "?", built: "?", notes: "" };
+    var s = storedSummary();
+
+    var h = "<h1>Settings</h1>";
+    h += '<p class="lede">Your version, your backups, and the button that pulls down the latest copy.</p>';
+
+    /* version + update */
+    h += '<div class="card"><h3>Version</h3>' +
+           '<div class="kv"><span>Installed on this phone</span><b>Version ' + esc(v.version) +
+             " &middot; " + esc(v.built) + "</b></div>" +
+           (v.notes ? '<div class="kv"><span>What changed</span><b>' + esc(v.notes) + "</b></div>" : "") +
+           '<div class="kv"><span>Latest available</span><b id="latestVer">Not checked yet</b></div>' +
+           '<div class="btn-row" style="margin-bottom:0">' +
+             '<button class="btn" onclick="Plant.checkVersion()">Check for a new version</button>' +
+             '<button class="btn primary" onclick="Plant.forceUpdate()">Get the latest version now</button>' +
+           "</div>" +
+           '<p class="step-detail">The update button throws away the old saved copy of the app and pulls ' +
+           'everything down fresh. You need internet for it. <b>Your answers and ticks are not touched.</b></p>' +
+         "</div>";
+
+    /* backup */
+    h += '<div class="card"><h3>Backup</h3>' +
+           '<p class="step-detail" style="margin-top:0">Everything you have typed lives on this phone only. ' +
+           'If you lose the phone, it is gone \u2014 unless you save a backup file somewhere safe, like your email.</p>' +
+           '<div class="kv"><span>Answers saved</span><b>' + s.answers + "</b></div>" +
+           '<div class="kv"><span>Checklists with ticks</span><b>' + s.tickLists + " (" + s.ticks + " ticks)</b></div>" +
+           '<div class="btn-row" style="margin-bottom:0">' +
+             '<button class="btn primary" onclick="Plant.saveBackup()">Save a backup file</button>' +
+           "</div></div>";
+
+    /* restore */
+    h += '<div class="card"><h3>Load a backup</h3>' +
+           '<p class="step-detail" style="margin-top:0">Pick a backup file you saved earlier. ' +
+           'This replaces what is on this phone now, so save a backup first if you are not sure.</p>' +
+           '<input type="file" id="restoreFile" accept="application/json,.json" class="filepick">' +
+           '<div class="btn-row" style="margin-bottom:0">' +
+             '<button class="btn" onclick="Plant.loadBackup()">Load it</button>' +
+           "</div></div>";
+
+    /* wipe */
+    h += '<div class="card"><h3>Start again</h3>' +
+           '<p class="step-detail" style="margin-top:0">Wipes every answer and every tick on this phone. ' +
+           'It cannot be undone.</p>' +
+           '<div class="btn-row" style="margin-bottom:0">' +
+             '<button class="btn danger" onclick="Plant.wipeAll()">Clear everything on this phone</button>' +
+           "</div></div>";
+
+    h += '<div class="btn-row"><button class="btn primary" onclick="Plant.go(\'#/\')">Back to the menu</button></div>';
+
+    view.innerHTML = h;
+    window.scrollTo(0, 0);
+    checkVersion(true);
+  }
+
+  function checkVersion(quiet) {
+    var el = document.getElementById("latestVer");
+    if (el) el.textContent = "Checking\u2026";
+    var installed = (window.PLANT_VERSION || {}).version;
+
+    fetch("version.json?t=" + Date.now(), { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (!el) return;
+        if (!j || !j.version) { el.textContent = "Could not check \u2014 no internet"; return; }
+        if (String(j.version) === String(installed)) {
+          el.innerHTML = "Version " + esc(j.version) + ' <span class="badge ok">Up to date</span>';
+        } else {
+          el.innerHTML = "Version " + esc(j.version) +
+            ' <span class="badge draft">New version \u2014 tap the update button</span>';
+        }
+      })["catch"](function () {
+        if (el) el.textContent = "Could not check \u2014 no internet";
+        if (!quiet) alert("Could not check. You need internet for that.");
+      });
+  }
+
+  function forceUpdate() {
+    if (!confirm("Get the latest version?\n\nThis needs internet. Your answers and ticks are kept.")) return;
+
+    var clearCaches = (window.caches && caches.keys)
+      ? caches.keys().then(function (keys) {
+          return Promise.all(keys.map(function (k) { return caches["delete"](k); }));
+        })
+      : Promise.resolve();
+
+    clearCaches
+      .then(function () {
+        if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+          return navigator.serviceWorker.getRegistrations().then(function (rs) {
+            return Promise.all(rs.map(function (r) { return r.unregister(); }));
+          });
+        }
+      })
+      ["catch"](function () {})
+      .then(function () {
+        location.replace(location.pathname + "?fresh=" + Date.now());
+      });
+  }
+
+  function saveBackup() {
+    var payload = {
+      app: "plant-guide",
+      kind: "backup",
+      appVersion: (window.PLANT_VERSION || {}).version || "?",
+      saved: new Date().toISOString(),
+      data: allStored()
+    };
+    saveTextFile("plant-guide-backup-" + stamp() + ".json", JSON.stringify(payload, null, 2));
+  }
+
+  function loadBackup() {
+    var input = document.getElementById("restoreFile");
+    if (!input || !input.files || !input.files.length) {
+      alert("Pick a backup file first.");
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function () {
+      var payload;
+      try { payload = JSON.parse(String(reader.result)); }
+      catch (e) { alert("That file is not a Plant Guide backup."); return; }
+
+      if (!payload || payload.app !== "plant-guide" || !payload.data) {
+        alert("That file is not a Plant Guide backup.");
+        return;
+      }
+      var keys = Object.keys(payload.data);
+      if (!confirm("Load this backup?\n\nSaved: " + (payload.saved || "unknown") +
+                   "\nItems: " + keys.length +
+                   "\n\nThis replaces what is on this phone now.")) return;
+
+      /* clear ours first so an old leftover does not survive */
+      Object.keys(allStored()).forEach(function (k) { localStorage.removeItem(k); });
+      keys.forEach(function (k) {
+        if (k.indexOf(STORE_PREFIX) === 0) localStorage.setItem(k, payload.data[k]);
+      });
+      alert("Backup loaded.");
+      renderSettings();
+    };
+    reader.onerror = function () { alert("Could not read that file."); };
+    reader.readAsText(input.files[0]);
+  }
+
+  function wipeAll() {
+    if (!confirm("Clear every answer and tick on this phone?")) return;
+    if (!confirm("Really? This cannot be undone. Save a backup first if you are not sure.")) return;
+    Object.keys(allStored()).forEach(function (k) { localStorage.removeItem(k); });
+    alert("Cleared.");
+    renderSettings();
+  }
+
   /* ---------------- search ---------------- */
 
   function buildIndex() {
@@ -687,6 +1183,20 @@ var Plant = (function () {
         title: f.title,
         snip: f.symptom || "",
         text: text.join(" ").toLowerCase()
+      });
+    });
+    INTERVIEWS.forEach(function (iv) {
+      var words = [iv.title, iv.subtitle, iv.intro];
+      iv.sections.forEach(function (s) {
+        words.push(s.title, s.hint);
+        s.questions.forEach(function (q) { words.push(q.label, q.hint); });
+      });
+      idx.push({
+        kind: "sheet",
+        hash: "#/interview/" + iv.id,
+        title: iv.title,
+        snip: iv.subtitle || "",
+        text: words.join(" ").toLowerCase()
       });
     });
     if (MAP) {
@@ -761,6 +1271,11 @@ var Plant = (function () {
     if (parts[0] === "t" && parts[1]) return renderFault(parts[1]);
     if (parts[0] === "map") return renderMap();
     if (parts[0] === "m" && parts[1]) return renderMachine(parts[1]);
+    if (parts[0] === "interview" && parts[1]) {
+      if (sendOpen && sendOpen !== parts[1]) sendOpen = null;
+      return renderInterview(parts[1]);
+    }
+    if (parts[0] === "settings") return renderSettings();
     if (parts[0] === "search") return renderSearch(decodeURIComponent(parts.slice(1).join("/") || ""));
     return renderNotFound();
   }
@@ -785,6 +1300,17 @@ var Plant = (function () {
     onSearchSubmit: onSearchSubmit,
     mapToggle: mapToggle,
     mapZoomBy: mapZoomBy,
-    mapZoomFit: mapZoomFit
+    mapZoomFit: mapZoomFit,
+    addStep: addStep,
+    removeStep: removeStep,
+    showSend: showSend,
+    copySend: copySend,
+    shareSend: shareSend,
+    downloadSend: downloadSend,
+    checkVersion: checkVersion,
+    forceUpdate: forceUpdate,
+    saveBackup: saveBackup,
+    loadBackup: loadBackup,
+    wipeAll: wipeAll
   };
 })();

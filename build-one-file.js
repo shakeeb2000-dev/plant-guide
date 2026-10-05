@@ -10,13 +10,15 @@ const read = (p) => fs.readFileSync(path.join(here, p), "utf8");
 
 const html = read("index.html");
 const css = read("styles.css");
+const versionJs = read("version.js");
 const machineIcons = read("machine-icons.js");
 const plantMap = read("data/plant-map.js");
+const interviews = read("data/interviews.js");
 const procedures = read("data/procedures.js");
 const troubleshooting = read("data/troubleshooting.js");
 const app = read("app.js");
 
-const bundle = [machineIcons, plantMap, procedures, troubleshooting, app].join("\n");
+const bundle = [versionJs, machineIcons, plantMap, interviews, procedures, troubleshooting, app].join("\n");
 
 if (/<\/script/i.test(bundle) || /<\/style/i.test(css)) {
   console.error("Content contains a closing script/style tag and cannot be inlined safely.");
@@ -26,7 +28,7 @@ if (/<\/script/i.test(bundle) || /<\/style/i.test(css)) {
 let out = html
   .replace('<link rel="stylesheet" href="styles.css">', "<style>\n" + css + "\n</style>")
   .replace(
-    /<script src="machine-icons\.js"><\/script>\s*<script src="data\/plant-map\.js"><\/script>\s*<script src="data\/procedures\.js"><\/script>\s*<script src="data\/troubleshooting\.js"><\/script>\s*<script src="app\.js"><\/script>/,
+    /<script src="version\.js"><\/script>\s*<script src="machine-icons\.js"><\/script>\s*<script src="data\/plant-map\.js"><\/script>\s*<script src="data\/interviews\.js"><\/script>\s*<script src="data\/procedures\.js"><\/script>\s*<script src="data\/troubleshooting\.js"><\/script>\s*<script src="app\.js"><\/script>/,
     "<script>\n" + bundle + "\n</script>"
   )
   /* These only make sense on a real web address, so drop them from the single file. */
@@ -35,7 +37,8 @@ let out = html
   .replace(/^\s*<link rel="apple-touch-icon"[^>]*>\s*$/m, "")
   .replace(/\n<script>\s*\/\* Makes the app work with no internet[\s\S]*?<\/script>\n/, "\n");
 
-if (out.includes("styles.css") || out.includes('src="app.js"') || out.includes("serviceWorker")) {
+if (out.includes("styles.css") || out.includes('src="app.js"') ||
+    out.includes("Makes the app work with no internet")) {
   console.error("Inlining failed — index.html no longer matches the expected tags.");
   process.exit(1);
 }

@@ -309,3 +309,64 @@ h2{font-size:20px; margin:30px 0 12px}
   .map-wrap{max-height:none; overflow:visible; border:0; box-shadow:none}
   .map-controls{display:none !important}
 }
+
+/* ---------- interview sheets ---------- */
+.tile.sheet{background:#fffdf7; border-color:#e8d6a8}
+
+.qblock{padding:14px 0; border-top:1px solid var(--line)}
+.card > .qblock:first-of-type{border-top:0; padding-top:4px}
+.qlabel{display:block; font-weight:700; margin:0 0 4px}
+.qhint{margin:0 0 8px; color:var(--ink-soft); font-size:14px}
+
+.ans{
+  width:100%; padding:11px 13px; border:1px solid var(--line); border-radius:10px;
+  background:#fff; color:var(--ink); font:inherit; line-height:1.45;
+}
+.ans:focus{outline:2px solid var(--green); outline-offset:1px; border-color:var(--green)}
+textarea.ans{resize:vertical; min-height:52px}
+
+.saved-flag{font-size:13px; color:var(--ink-soft); white-space:nowrap}
+.saved-flag.just{color:var(--green); font-weight:700}
+
+.isteps{display:flex; flex-direction:column; gap:12px; margin:0 0 12px}
+.istep{
+  border:1px solid var(--line); border-left:4px solid var(--green);
+  border-radius:12px; padding:14px; background:#fbfdfc;
+}
+.istep-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px}
+.field.wide{width:100%; margin-bottom:10px}
+.field.wide span{font-size:13px; color:var(--ink-soft); margin-bottom:4px; display:block}
+.field.wide:last-child{margin-bottom:0}
+.btn.small{padding:6px 12px; font-size:13.5px}
+
+.sendbox{
+  width:100%; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:13px; line-height:1.5; padding:12px; border:1px solid var(--line);
+  border-radius:10px; background:#fbfdfc; color:var(--ink); resize:vertical;
+}
+
+/* ---------- settings ---------- */
+.kv{
+  display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap;
+  padding:9px 0; border-bottom:1px solid var(--line); font-size:15px;
+}
+.kv:last-of-type{border-bottom:0}
+.kv span{color:var(--ink-soft)}
+.kv b{text-align:right}
+.filepick{
+  display:block; width:100%; margin:0 0 14px; padding:11px;
+  border:1px dashed var(--line); border-radius:10px; background:#fbfdfc; font-size:15px;
+}
+.btn.danger{background:var(--red-bg); border-color:#f3b6b1; color:#7f1d1a}
+.btn.danger:hover{background:#fbdbd7; border-color:var(--red)}
+
+@media print{
+  .ans{border:0; border-bottom:1px solid #999; border-radius:0; min-height:0}
+  textarea.ans{min-height:48px}
+  .sendbox,.filepick{display:none}
+}
+
+@media (max-width:640px){
+  .kv{flex-direction:column; gap:2px}
+  .kv b{text-align:left}
+}

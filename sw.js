@@ -2,15 +2,17 @@
    If you change any content, bump CACHE_VERSION by one so phones pick
    up the new version instead of the old cached one. */
 
-var CACHE_VERSION = "plant-guide-v2";
+var CACHE_VERSION = "plant-guide-v3";
 
 var FILES = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
+  "./version.js",
   "./machine-icons.js",
   "./data/plant-map.js",
+  "./data/interviews.js",
   "./data/procedures.js",
   "./data/troubleshooting.js",
   "./manifest.json",
@@ -46,6 +48,17 @@ self.addEventListener("activate", function (event) {
 self.addEventListener("fetch", function (event) {
   var req = event.request;
   if (req.method !== "GET") return;
+
+  /* version.json must always come from the network, never the cache,
+     otherwise the app can never tell that a new version exists. */
+  if (req.url.indexOf("version.json") !== -1) {
+    event.respondWith(
+      fetch(req, { cache: "no-store" })["catch"](function () {
+        return new Response("{}", { headers: { "Content-Type": "application/json" } });
+      })
+    );
+    return;
+  }
 
   /* Page loads: try the network for a fresh copy, fall back to the cached page. */
   if (req.mode === "navigate") {

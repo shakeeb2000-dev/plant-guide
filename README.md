@@ -25,6 +25,8 @@ in the control room with the wifi off.
 | `data/plant-map.js` | **The content.** The machines, where they sit, and what flows where. |
 | `machine-icons.js` | The hand-drawn icon for each type of machine. |
 | `QUESTION-SHEET.md` | What to ask your boss |
+| `data/interviews.js` | **The content.** The interview questions you type answers into. |
+| `version.js` / `version.json` | The version number. Both must say the same thing. |
 | `GITHUB-STEPS.md` | How to put it online and install it on a phone |
 | `PLANT-GUIDE-single-file.html` | The whole app squashed into one file, for emailing around |
 | `manifest.json`, `sw.js`, `icons/` | What makes it installable and work with no signal |
@@ -37,8 +39,24 @@ Follow `GITHUB-STEPS.md`. Short version: upload the folder to a GitHub repositor
 on GitHub Pages, open the link on the phone, then "Install app" (Android) or
 "Add to Home Screen" (iPhone). After the first open it works with no signal.
 
-**If you change the content, bump `CACHE_VERSION` in `sw.js`** so phones drop the old
-copy and pick up the new one.
+## Releasing a new version
+
+```
+node tools/bump-version.js "what changed"   # bumps version.js, version.json and sw.js together
+node build-one-file.js                      # rebuilds the single-file copy
+```
+
+Then upload to GitHub. On the phone, Settings → **Get the latest version now** pulls it
+down immediately; otherwise it arrives on its own next time the app is opened with signal.
+
+## Answers, backup and restore
+
+Everything typed into the interview sheets, plus every tick and sign-off, is stored on
+that one device. Settings → **Save a backup file** writes it all to a JSON file; **Load a
+backup** reads it back. Updating the app never touches those answers.
+
+The two `INTERVIEW-*.md` files are just printable paper copies. The sheets inside the app
+are the live ones — type answers there.
 
 ## What it does
 
