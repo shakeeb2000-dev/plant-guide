@@ -224,3 +224,88 @@ h2{font-size:20px; margin:30px 0 12px}
   .card,.step{box-shadow:none; break-inside:avoid; page-break-inside:avoid}
   .step-check{-webkit-appearance:none; appearance:none; width:16px; height:16px; border:1.5px solid #333; border-radius:3px}
 }
+
+/* ---------- plant map ---------- */
+.tile.map{background:#0f3b2a; border-color:#0f3b2a; color:#fff}
+.tile.map .tile-sub{color:rgba(255,255,255,.85)}
+
+.map-controls{
+  display:flex; flex-wrap:wrap; gap:12px; align-items:center;
+  justify-content:space-between; margin:0 0 12px;
+}
+.map-chips{display:flex; flex-wrap:wrap; gap:8px}
+.map-chip{
+  display:inline-flex; align-items:center; gap:7px; cursor:pointer;
+  border:1px solid var(--line); background:#fff; color:var(--ink-soft);
+  border-radius:999px; padding:7px 13px; font-size:13.5px; font-weight:600;
+}
+.map-chip .dot{
+  width:11px; height:11px; border-radius:50%;
+  background:#fff; border:2px solid var(--chip, #999);
+}
+.map-chip.on{border-color:var(--chip); color:var(--ink)}
+.map-chip.on .dot{background:var(--chip)}
+
+.map-zoom{display:flex; align-items:center; gap:8px}
+.map-zoom .btn{padding:8px 14px; min-width:44px}
+.zoom-val{font-size:13px; color:var(--ink-soft); min-width:46px; text-align:center}
+
+.map-wrap{
+  overflow:auto; background:#fff;
+  border:1px solid var(--line); border-radius:var(--radius);
+  box-shadow:var(--shadow); margin:0 0 16px;
+  max-height:72vh; cursor:grab;
+  -webkit-overflow-scrolling:touch;
+}
+.map-wrap.grabbing{cursor:grabbing}
+.plantmap{display:block}
+.mnode{cursor:pointer}
+.mnode:hover rect{filter:brightness(.96)}
+.mnode:active rect{filter:brightness(.92)}
+.map-nodelabel{
+  font-family:inherit; font-size:11.5px; font-weight:700;
+  text-anchor:middle; pointer-events:none;
+}
+.map-edgelabel{
+  font-family:inherit; font-size:11px; font-weight:600;
+  text-anchor:middle; pointer-events:none; paint-order:stroke;
+  stroke:#fff; stroke-width:3.5px; stroke-linejoin:round;
+}
+.map-sectionlabel text{
+  font-family:inherit; font-size:13px; font-weight:800;
+  fill:#8a9790; letter-spacing:.08em;
+}
+.map-guess{
+  font-family:inherit; font-size:12px; font-weight:800; fill:#b45309;
+  text-anchor:middle; pointer-events:none;
+}
+
+/* ---------- machine page ---------- */
+.machine-head{
+  display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  border:1px solid; border-radius:var(--radius); padding:16px 18px; margin:0 0 16px;
+}
+.machine-icon{flex:0 0 auto}
+.blank-card{background:#fcfdfc; border-style:dashed}
+.blank-card h3{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+
+.joined{display:grid; grid-template-columns:1fr 1fr; gap:18px}
+.joined > div > b{display:block; margin-bottom:8px; font-size:14px}
+.joined-list{display:flex; flex-direction:column; gap:8px}
+.joined-btn{
+  text-align:left; cursor:pointer; background:#fff; color:var(--ink);
+  border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-weight:600;
+}
+.joined-btn:hover{border-color:var(--green)}
+.joined-btn span{display:block; font-weight:500; font-size:12.5px; color:var(--ink-soft)}
+
+@media (max-width:640px){
+  .joined{grid-template-columns:1fr}
+  .map-wrap{max-height:62vh}
+  .map-controls{gap:10px}
+}
+
+@media print{
+  .map-wrap{max-height:none; overflow:visible; border:0; box-shadow:none}
+  .map-controls{display:none !important}
+}

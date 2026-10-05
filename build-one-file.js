@@ -10,11 +10,13 @@ const read = (p) => fs.readFileSync(path.join(here, p), "utf8");
 
 const html = read("index.html");
 const css = read("styles.css");
+const machineIcons = read("machine-icons.js");
+const plantMap = read("data/plant-map.js");
 const procedures = read("data/procedures.js");
 const troubleshooting = read("data/troubleshooting.js");
 const app = read("app.js");
 
-const bundle = [procedures, troubleshooting, app].join("\n");
+const bundle = [machineIcons, plantMap, procedures, troubleshooting, app].join("\n");
 
 if (/<\/script/i.test(bundle) || /<\/style/i.test(css)) {
   console.error("Content contains a closing script/style tag and cannot be inlined safely.");
@@ -24,7 +26,7 @@ if (/<\/script/i.test(bundle) || /<\/style/i.test(css)) {
 let out = html
   .replace('<link rel="stylesheet" href="styles.css">', "<style>\n" + css + "\n</style>")
   .replace(
-    /<script src="data\/procedures\.js"><\/script>\s*<script src="data\/troubleshooting\.js"><\/script>\s*<script src="app\.js"><\/script>/,
+    /<script src="machine-icons\.js"><\/script>\s*<script src="data\/plant-map\.js"><\/script>\s*<script src="data\/procedures\.js"><\/script>\s*<script src="data\/troubleshooting\.js"><\/script>\s*<script src="app\.js"><\/script>/,
     "<script>\n" + bundle + "\n</script>"
   )
   /* These only make sense on a real web address, so drop them from the single file. */

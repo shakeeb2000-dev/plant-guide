@@ -14,6 +14,12 @@ var Plant = (function () {
   var PROCS  = window.PLANT_PROCEDURES || [];
   var FAULTS = window.PLANT_FAULTS || [];
   var INFO   = window.PLANT_INFO || { name: "Plant Guide", site: "", revision: "" };
+  var MAP    = window.PLANT_MAP || null;
+  var ICONS  = window.MACHINE_ICONS || {};
+
+  var NODE_W = 108, NODE_H = 82;
+  var mapZoom = 0;  /* 0 means "work it out from the screen size" */
+  var mapStreams = { solids: true, meal: true, tallow: true, water: true, steam: false };
 
   /* ---------------- helpers ---------------- */
 
@@ -78,6 +84,10 @@ var Plant = (function () {
       h += tile("#/p/" + p.id, p.icon || "\u25A0", p.title, p.subtitle || "", "big");
     });
     h += tile("#/trouble", "\u{1F527}", "Something has gone wrong", FAULTS.length + " faults, step by step", "warn");
+    if (MAP) {
+      h += tile("#/map", "\u{1F5FA}", "Plant Map",
+                MAP.nodes.length + " machines \u2014 tap any one for its details", "map");
+    }
     h += '</div>';
 
     h += '<h2>Lines</h2><div class="tile-grid">';
@@ -336,6 +346,316 @@ var Plant = (function () {
     renderFlow();
   }
 
+  /* ---------------- plant map ---------------- */
+
+  function mapNode(id) {
+    if (!MAP) return null;
+    for (var i = 0; i < MAP.nodes.length; i++) if (MAP.nodes[i].id === id) return MAP.nodes[i];
+    return null;
+  }
+
+  function iconMarkup(type, cx, cy, box, color, width) {
+    var art = ICONS[type] || ICONS.generic;
+    var s = box / 24;
+    return '<g transform="translate(' + (cx - box / 2) + ',' + (cy - box / 2) + ') scale(' + s + ')" ' +
+           'fill="none" stroke="' + color + '" stroke-width="' + (width || 1.5) + '" ' +
+           'stroke-linecap="round" stroke-linejoin="round">' + art + '</g>';
+  }
+
+  function wrapLabel(text, maxChars) {
+    var words = String(text).split(" ");
+    var lines = [], cur = "";
+    for (var i = 0; i < words.length; i++) {
+      var test = cur ? cur + " " + words[i] : words[i];
+      if (test.length > maxChars && cur) { lines.push(cur); cur = words[i]; }
+      else cur = test;
+    }
+    if (cur) lines.push(cur);
+    if (lines.length > 2) lines = [lines[0], lines.slice(1).join(" ")];
+    return lines;
+  }
+
+  function edgePath(a, b) {
+    var hw = NODE_W / 2, hh = NODE_H / 2;
+    var dx = b.x - a.x, dy = b.y - a.y;
+
+    /* straight across */
+    if (Math.abs(dy) < 2 && dx > 0) return "M" + (a.x + hw) + " " + a.y + " H" + (b.x - hw);
+
+    /* straight back — loop over the top */
+    if (Math.abs(dy) < 2 && dx < 0) {
+      var yy = a.y - hh - 26;
+      return "M" + a.x + " " + (a.y - hh) + " V" + yy + " H" + b.x + " V" + (b.y - hh);
+    }
+
+    /* forwards and across — step in the middle */
+    if (dx > NODE_W) {
+      var ax = a.x + hw, bx = b.x - hw, mx = (ax + bx) / 2;
+      return "M" + ax + " " + a.y + " H" + mx + " V" + b.y + " H" + bx;
+    }
+
+    /* mostly up or down — drop first, then step across near the end */
+    var sy = dy > 0 ? a.y + hh : a.y - hh;
+    var ey = dy > 0 ? b.y - hh : b.y + hh;
+    var jog = dy > 0 ? ey - 28 : ey + 28;
+    return "M" + a.x + " " + sy + " V" + jog + " H" + b.x + " V" + ey;
+  }
+
+  function autoZoom() {
+    var w = view.clientWidth || 900;
+    var z = w / MAP.canvas.width;
+    return Math.max(0.42, Math.min(1, Math.round(z * 100) / 100));
+  }
+
+  function renderMap() {
+    if (!MAP) return renderNotFound();
+    if (!mapZoom) mapZoom = autoZoom();
+
+    var h = '<h1>Plant Map</h1>';
+    h += '<p class="lede">Tap any machine for its own page. Drag the map to move around.</p>';
+
+    h += '<div class="callout warn"><strong>First draft, built from your notes</strong>' +
+         'The two lines follow what you told me. Anything with an orange <b>?</b> on it is me ' +
+         'guessing to fill a gap \u2014 check those first and tell me what is wrong.</div>';
+
+    /* controls */
+    h += '<div class="map-controls">';
+    h += '<div class="map-chips">';
+    Object.keys(MAP.streams).forEach(function (k) {
+      var s = MAP.streams[k];
+      h += '<button class="map-chip' + (mapStreams[k] ? " on" : "") + '" ' +
+             'style="--chip:' + s.color + '" onclick="Plant.mapToggle(\'' + k + '\')">' +
+             '<span class="dot"></span>' + esc(s.label) + '</button>';
+    });
+    h += '</div>';
+    h += '<div class="map-zoom">' +
+           '<button class="btn" onclick="Plant.mapZoomBy(-0.15)" aria-label="Zoom out">&minus;</button>' +
+           '<span class="zoom-val">' + Math.round(mapZoom * 100) + '%</span>' +
+           '<button class="btn" onclick="Plant.mapZoomBy(0.15)" aria-label="Zoom in">+</button>' +
+           '<button class="btn" onclick="Plant.mapZoomFit()">Fit</button>' +
+         '</div></div>';
+
+    /* the drawing */
+    var W = MAP.canvas.width, H = MAP.canvas.height;
+    var svg = '<svg class="plantmap" viewBox="0 0 ' + W + ' ' + H + '" ' +
+              'width="' + Math.round(W * mapZoom) + '" height="' + Math.round(H * mapZoom) + '" ' +
+              'xmlns="http://www.w3.org/2000/svg">';
+
+    /* arrow heads, one per stream colour */
+    svg += "<defs>";
+    Object.keys(MAP.streams).forEach(function (k) {
+      svg += '<marker id="arw-' + k + '" viewBox="0 0 10 10" refX="9" refY="5" ' +
+             'markerWidth="6" markerHeight="6" orient="auto-start-reverse">' +
+             '<path d="M0 1 L9 5 L0 9 z" fill="' + MAP.streams[k].color + '"/></marker>';
+    });
+    svg += "</defs>";
+
+    /* section backgrounds */
+    svg += '<g opacity=".55">' +
+      '<rect x="20" y="40" width="' + (W - 40) + '" height="160" rx="18" fill="#f0f7f3"/>' +
+      '<rect x="36" y="258" width="715" height="146" rx="18" fill="#f0f2f1"/>' +
+      '<rect x="770" y="212" width="810" height="348" rx="18" fill="#fdf6ea"/>' +
+      '<rect x="20" y="566" width="' + (W - 40) + '" height="280" rx="18" fill="#f1f4fc"/>' +
+      '</g>';
+    svg += '<g class="map-sectionlabel">' +
+      '<text x="36" y="66">OVINE LINE</text>' +
+      '<text x="52" y="282">SERVICES</text>' +
+      '<text x="786" y="240">TALLOW \u2014 SHARED</text>' +
+      '<text x="36" y="592">MBM / MIXED LINE</text>' +
+      '</g>';
+
+    /* edges first, so they sit behind the machines */
+    MAP.edges.forEach(function (e) {
+      if (!mapStreams[e.stream]) return;
+      var a = mapNode(e.from), b = mapNode(e.to);
+      if (!a || !b) return;
+      var col = MAP.streams[e.stream].color;
+      svg += '<path d="' + edgePath(a, b) + '" fill="none" stroke="' + col + '" ' +
+             'stroke-width="2.4" stroke-linejoin="round" ' +
+             (e.dashed ? 'stroke-dasharray="7 6" ' : "") +
+             'marker-end="url(#arw-' + e.stream + ')"/>';
+    });
+
+    /* edge labels, only when zoomed in enough to read them */
+    if (mapZoom >= 0.62) {
+      MAP.edges.forEach(function (e) {
+        if (!e.label || !mapStreams[e.stream]) return;
+        var a = mapNode(e.from), b = mapNode(e.to);
+        if (!a || !b) return;
+        var lx = (a.x + b.x) / 2, ly = (a.y + b.y) / 2 - 8;
+        svg += '<text class="map-edgelabel" x="' + lx + '" y="' + ly + '" ' +
+               'fill="' + MAP.streams[e.stream].color + '">' + esc(e.label) + '</text>';
+      });
+    }
+
+    /* machines */
+    MAP.nodes.forEach(function (n) {
+      var ln = MAP.lines[n.line] || MAP.lines.utility;
+      var x = n.x - NODE_W / 2, y = n.y - NODE_H / 2;
+      svg += '<g class="mnode" onclick="Plant.go(\'#/m/' + n.id + '\')">';
+      svg += '<rect x="' + x + '" y="' + y + '" width="' + NODE_W + '" height="' + NODE_H + '" ' +
+             'rx="12" fill="' + ln.fill + '" stroke="' + ln.stroke + '" stroke-width="2"/>';
+      svg += iconMarkup(n.type, n.x, n.y - 17, 27, ln.stroke, 1.4);
+      wrapLabel(n.label, 15).forEach(function (line, i) {
+        svg += '<text class="map-nodelabel" x="' + n.x + '" y="' + (n.y + 13 + i * 13) + '" ' +
+               'fill="' + ln.text + '">' + esc(line) + '</text>';
+      });
+      if (n.guess) {
+        svg += '<circle cx="' + (x + NODE_W - 12) + '" cy="' + (y + 12) + '" r="9" ' +
+               'fill="#fff6e6" stroke="#b45309" stroke-width="1.6"/>';
+        svg += '<text class="map-guess" x="' + (x + NODE_W - 12) + '" y="' + (y + 16) + '">?</text>';
+      }
+      svg += "</g>";
+    });
+
+    svg += "</svg>";
+
+    h += '<div class="map-wrap" id="mapWrap">' + svg + "</div>";
+
+    /* legend */
+    h += '<div class="card"><h3>What the colours mean</h3><ul class="chips" style="margin:0">';
+    Object.keys(MAP.lines).forEach(function (k) {
+      var l = MAP.lines[k];
+      h += '<li style="background:' + l.fill + ';border-color:' + l.stroke + ';color:' + l.text + '">' +
+           esc(l.label) + '</li>';
+    });
+    h += '</ul><p class="step-detail" style="margin-top:12px">' +
+         'Dashed arrows are either a choice of route or something I am not sure about. ' +
+         'A machine with an orange <b>?</b> is a guess.</p></div>';
+
+    h += '<div class="btn-row">' +
+           '<button class="btn primary" onclick="Plant.go(\'#/\')">Back to the menu</button>' +
+           '<button class="btn" onclick="window.print()">Print the map</button>' +
+         '</div>';
+
+    view.innerHTML = h;
+    window.scrollTo(0, 0);
+    enableDragScroll(document.getElementById("mapWrap"));
+  }
+
+  /* lets you drag the map around with a mouse, like a touch screen */
+  function enableDragScroll(el) {
+    if (!el) return;
+    var down = false, sx = 0, sy = 0, sl = 0, st = 0;
+    el.addEventListener("mousedown", function (e) {
+      down = true; sx = e.pageX; sy = e.pageY; sl = el.scrollLeft; st = el.scrollTop;
+      el.classList.add("grabbing");
+    });
+    window.addEventListener("mouseup", function () { down = false; el.classList.remove("grabbing"); });
+    el.addEventListener("mousemove", function (e) {
+      if (!down) return;
+      e.preventDefault();
+      el.scrollLeft = sl - (e.pageX - sx);
+      el.scrollTop = st - (e.pageY - sy);
+    });
+  }
+
+  function mapToggle(stream) { mapStreams[stream] = !mapStreams[stream]; renderMap(); }
+  function mapZoomBy(d) {
+    mapZoom = Math.max(0.3, Math.min(1.6, Math.round((mapZoom + d) * 100) / 100));
+    renderMap();
+  }
+  function mapZoomFit() { mapZoom = autoZoom(); renderMap(); }
+
+  /* ---------------- one machine ---------------- */
+
+  function renderMachine(id) {
+    var n = mapNode(id);
+    if (!n) return renderNotFound();
+    var ln = MAP.lines[n.line] || MAP.lines.utility;
+
+    var into = MAP.edges.filter(function (e) { return e.to === id; });
+    var outOf = MAP.edges.filter(function (e) { return e.from === id; });
+
+    var h = "";
+    h += '<div class="machine-head" style="background:' + ln.fill + ';border-color:' + ln.stroke + '">' +
+           '<svg class="machine-icon" viewBox="0 0 64 64" width="64" height="64">' +
+             iconMarkup(n.type, 32, 32, 52, ln.stroke, 1.6) +
+           '</svg>' +
+           '<div><h1 style="margin:0">' + esc(n.label) + '</h1>' +
+           '<p class="lede" style="margin:4px 0 0">' + esc(ln.label) +
+             (n.status ? " &middot; " + esc(n.status) : "") + '</p></div>' +
+         '</div>';
+
+    if (n.guess) {
+      h += '<div class="callout warn"><strong>This one is my guess</strong>' +
+           'I put this machine here to fill a gap. Check it with your boss before anyone relies on it.</div>';
+    }
+
+    h += '<div class="card"><h3>What it does</h3><div>' + esc(n.whatItDoes || "Not written down yet.") + '</div></div>';
+
+    /* what it is joined to */
+    h += '<div class="card"><h3>What it is joined to</h3>';
+    h += '<div class="joined"><div><b>Comes from</b>';
+    if (into.length) {
+      h += '<div class="joined-list">';
+      into.forEach(function (e) {
+        var o = mapNode(e.from);
+        h += '<button class="joined-btn" onclick="Plant.go(\'#/m/' + o.id + '\')">' +
+             esc(o.label) + ' <span>' + esc(MAP.streams[e.stream].label) + '</span></button>';
+      });
+      h += "</div>";
+    } else h += '<p class="step-detail">Nothing drawn in yet.</p>';
+    h += '</div><div><b>Goes to</b>';
+    if (outOf.length) {
+      h += '<div class="joined-list">';
+      outOf.forEach(function (e) {
+        var o = mapNode(e.to);
+        h += '<button class="joined-btn" onclick="Plant.go(\'#/m/' + o.id + '\')">' +
+             esc(o.label) + ' <span>' + esc(MAP.streams[e.stream].label) + '</span></button>';
+      });
+      h += "</div>";
+    } else h += '<p class="step-detail">Nothing drawn in yet.</p>';
+    h += "</div></div></div>";
+
+    /* the empty sections, written as the questions to ask */
+    var blanks = [
+      { t: "How to start it", q: ["What do you check before you press start?",
+                                  "What order do the buttons and valves go in?",
+                                  "How do you know it has started properly?"] },
+      { t: "How to stop it", q: ["Does it have to be run empty first?",
+                                 "What gets isolated or locked out?",
+                                 "What sets solid or burns if you just stop it?"] },
+      { t: "Normal running numbers", q: ["Temperatures, pressures, amps, speed, feed rate.",
+                                         "What is too high, and what is too low?"] },
+      { t: "Machine details", q: ["Make, model, serial, year.",
+                                  "Motor size, capacity.",
+                                  "Service interval and who services it."] },
+      { t: "Photos", q: ["A photo of the machine and of its control panel.",
+                         "Send them to me and I will put them on this page."] }
+    ];
+
+    blanks.forEach(function (b) {
+      h += '<div class="card blank-card"><h3>' + esc(b.t) +
+           ' <span class="badge draft">Not filled in yet</span></h3><ul class="step-checks">';
+      b.q.forEach(function (q) { h += "<li>" + esc(q) + "</li>"; });
+      h += "</ul></div>";
+    });
+
+    /* faults */
+    if (n.faults && n.faults.length) {
+      h += '<h2>When this one plays up</h2>';
+      n.faults.forEach(function (fid) {
+        var f = byId(FAULTS, fid);
+        if (!f) return;
+        h += '<button class="result" onclick="Plant.go(\'#/t/' + f.id + '\')">' +
+               '<span class="result-kind">Fault finding</span>' +
+               '<span class="result-title">' + esc(f.title) + '</span>' +
+               '<span class="result-snip">' + esc(f.symptom || "") + '</span>' +
+             '</button>';
+      });
+    }
+
+    h += '<div class="btn-row">' +
+           '<button class="btn primary" onclick="Plant.go(\'#/map\')">Back to the map</button>' +
+           '<button class="btn" onclick="Plant.go(\'#/\')">Menu</button>' +
+           '<button class="btn" onclick="window.print()">Print</button>' +
+         '</div>';
+
+    view.innerHTML = h;
+    window.scrollTo(0, 0);
+  }
+
   /* ---------------- search ---------------- */
 
   function buildIndex() {
@@ -369,6 +689,18 @@ var Plant = (function () {
         text: text.join(" ").toLowerCase()
       });
     });
+    if (MAP) {
+      MAP.nodes.forEach(function (n) {
+        idx.push({
+          kind: "machine",
+          hash: "#/m/" + n.id,
+          title: n.label,
+          snip: n.whatItDoes || "",
+          text: [n.label, n.type, n.whatItDoes, n.status, (MAP.lines[n.line] || {}).label]
+                  .join(" ").toLowerCase()
+        });
+      });
+    }
     return idx;
   }
 
@@ -427,6 +759,8 @@ var Plant = (function () {
     if (parts[0] === "p" && parts[1]) return renderProcedure(parts[1]);
     if (parts[0] === "trouble") return renderFaultList();
     if (parts[0] === "t" && parts[1]) return renderFault(parts[1]);
+    if (parts[0] === "map") return renderMap();
+    if (parts[0] === "m" && parts[1]) return renderMachine(parts[1]);
     if (parts[0] === "search") return renderSearch(decodeURIComponent(parts.slice(1).join("/") || ""));
     return renderNotFound();
   }
@@ -448,6 +782,9 @@ var Plant = (function () {
     answer: answer,
     flowBack: flowBack,
     flowRestart: flowRestart,
-    onSearchSubmit: onSearchSubmit
+    onSearchSubmit: onSearchSubmit,
+    mapToggle: mapToggle,
+    mapZoomBy: mapZoomBy,
+    mapZoomFit: mapZoomFit
   };
 })();

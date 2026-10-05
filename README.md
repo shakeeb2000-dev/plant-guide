@@ -22,6 +22,8 @@ in the control room with the wifi off.
 | `styles.css` | How it looks |
 | `data/procedures.js` | **The content.** Startup, shutdown, every line. |
 | `data/troubleshooting.js` | **The content.** Every fault and its questions. |
+| `data/plant-map.js` | **The content.** The machines, where they sit, and what flows where. |
+| `machine-icons.js` | The hand-drawn icon for each type of machine. |
 | `QUESTION-SHEET.md` | What to ask your boss |
 | `GITHUB-STEPS.md` | How to put it online and install it on a phone |
 | `PLANT-GUIDE-single-file.html` | The whole app squashed into one file, for emailing around |

@@ -2,13 +2,15 @@
    If you change any content, bump CACHE_VERSION by one so phones pick
    up the new version instead of the old cached one. */
 
-var CACHE_VERSION = "plant-guide-v1";
+var CACHE_VERSION = "plant-guide-v2";
 
 var FILES = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
+  "./machine-icons.js",
+  "./data/plant-map.js",
   "./data/procedures.js",
   "./data/troubleshooting.js",
   "./manifest.json",
