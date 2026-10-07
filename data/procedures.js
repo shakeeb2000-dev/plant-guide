@@ -8,11 +8,7 @@
    status: "approved" -> shows the green "signed off" badge
    ============================================================= */
 
-window.PLANT_INFO = {
-  name: "Rendering Plant Guide",
-  site: "Site name goes here",
-  revision: "Rev 0 — draft, nothing approved yet"
-};
+/* The plant name and revision live in data/plant-map.js */
 
 window.PLANT_PROCEDURES = [
 
@@ -268,11 +264,11 @@ window.PLANT_PROCEDURES = [
         checks: ["Gross and tare weights recorded", "Species recorded against the weight", "Docket filed or scanned"]
       },
       {
-        title: "Tip into the correct bin",
-        detail: "Each species group has its own bin or run. Tip into the right one and never on top of a different species.",
+        title: "Tip into the correct pit",
+        detail: "Trucks tip straight into one of the two pits. Ovine goes in the Plant 1 pit, everything else goes in the Plant 2 pit. Never tip one into the other.",
         who: "Driver + Intake Operator",
-        warning: "If the wrong bin is used, stop and tell the supervisor straight away. Do not keep going and hope.",
-        checks: ["Correct bin for the species", "Bin has room", "Tipping area clear of people"]
+        warning: "If a load goes into the wrong pit, stop and tell the supervisor straight away. Do not keep going and hope.",
+        checks: ["Correct pit for the species", "Pit has room", "Tipping area clear of people"]
       },
       {
         title: "Run the intake conveyor at a steady rate",

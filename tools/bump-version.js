@@ -1,48 +1,55 @@
-/* Bumps the app version in all three places at once, so phones know a new
-   copy exists and drop the old cached one.
+#!/usr/bin/env node
+/* =============================================================
+   Bumps the version number in the three places that must agree:
+   version.js, version.json and sw.js.
 
-   Run:  node tools/bump-version.js  ["what changed"]
-*/
+       node tools/bump-version.js "what changed"
 
-const fs = require("fs");
-const path = require("path");
-const root = path.resolve(__dirname, "..");
+   If the cache name in sw.js does not match, phones keep serving
+   the old app forever. That is why this exists.
+   ============================================================= */
 
-const notes = process.argv.slice(2).join(" ").trim();
+"use strict";
 
-const current = JSON.parse(fs.readFileSync(path.join(root, "version.json"), "utf8"));
-const next = String(Number(current.version) + 1);
-const built = new Date().toISOString().slice(0, 10);
-const text = notes || current.notes;
+var fs = require("fs");
+var path = require("path");
 
-/* version.json — read fresh from the network to spot new versions */
-fs.writeFileSync(
-  path.join(root, "version.json"),
-  JSON.stringify({ version: next, built: built, notes: text }, null, 2) + "\n"
-);
+var ROOT = path.dirname(__dirname);
+var notes = process.argv.slice(2).join(" ").trim();
 
-/* version.js — travels with the cached app, so it is the installed version */
-fs.writeFileSync(
-  path.join(root, "version.js"),
-  '/* The version that is actually installed on this device.\n' +
-  '   Bump it with:  node tools/bump-version.js  (keeps version.json and sw.js in step) */\n' +
-  "window.PLANT_VERSION = {\n" +
-  '  version: "' + next + '",\n' +
-  '  built: "' + built + '",\n' +
-  '  notes: ' + JSON.stringify(text) + "\n" +
-  "};\n"
-);
+function file(rel) { return path.join(ROOT, rel); }
+function read(rel) { return fs.readFileSync(file(rel), "utf8"); }
+function write(rel, text) { fs.writeFileSync(file(rel), text, "utf8"); }
 
-/* sw.js — changing this name is what throws the old cache away */
-const swPath = path.join(root, "sw.js");
-let sw = fs.readFileSync(swPath, "utf8");
-const before = sw;
-sw = sw.replace(/var CACHE_VERSION = "plant-guide-v\d+";/, 'var CACHE_VERSION = "plant-guide-v' + next + '";');
-if (sw === before) {
-  console.error("Could not find CACHE_VERSION in sw.js — check it by hand.");
-  process.exit(1);
+function today() {
+  var d = new Date();
+  function p(n) { return (n < 10 ? "0" : "") + n; }
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
 }
-fs.writeFileSync(swPath, sw);
 
-console.log("Version " + current.version + " -> " + next + "  (" + built + ")");
-console.log("Now run:  node build-one-file.js");
+function main() {
+  var current = JSON.parse(read("version.json"));
+  var next = String(Number(current.version) + 1);
+  var built = today();
+  var text = notes || current.notes || "";
+
+  write("version.json", JSON.stringify({
+    version: next, built: built, notes: text
+  }, null, 2) + "\n");
+
+  var js = read("version.js")
+    .replace(/version:\s*"[^"]*"/, 'version: "' + next + '"')
+    .replace(/built:\s*"[^"]*"/, 'built: "' + built + '"')
+    .replace(/notes:\s*"[^"]*"/, 'notes: ' + JSON.stringify(text));
+  write("version.js", js);
+
+  var sw = read("sw.js").replace(/var VERSION = "[^"]*"/, 'var VERSION = "' + next + '"');
+  write("sw.js", sw);
+
+  console.log("Version " + current.version + " -> " + next + "  (" + built + ")");
+  if (text) console.log("Notes: " + text);
+  console.log("\nUpdated version.js, version.json and sw.js.");
+  console.log("Now run:  node build-one-file.js");
+}
+
+main();

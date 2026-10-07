@@ -1,48 +1,96 @@
-/* Squashes the whole app into one single HTML file you can email to a phone.
-   Run it with:  node build-one-file.js
-   Re-run it any time the content in data/ changes. */
+#!/usr/bin/env node
+/* =============================================================
+   Squashes the whole app into one file you can email around.
 
-const fs = require("fs");
-const path = require("path");
+       node build-one-file.js
 
-const here = __dirname;
-const read = (p) => fs.readFileSync(path.join(here, p), "utf8");
+   It reads index.html, pulls the CSS and every script inline, and
+   writes PLANT-GUIDE-single-file.html. That one file opens on any
+   phone or PC with no folder, no internet and no install.
+   ============================================================= */
 
-const html = read("index.html");
-const css = read("styles.css");
-const versionJs = read("version.js");
-const machineIcons = read("machine-icons.js");
-const plantMap = read("data/plant-map.js");
-const interviews = read("data/interviews.js");
-const procedures = read("data/procedures.js");
-const troubleshooting = read("data/troubleshooting.js");
-const app = read("app.js");
+"use strict";
 
-const bundle = [versionJs, machineIcons, plantMap, interviews, procedures, troubleshooting, app].join("\n");
+var fs = require("fs");
+var path = require("path");
 
-if (/<\/script/i.test(bundle) || /<\/style/i.test(css)) {
-  console.error("Content contains a closing script/style tag and cannot be inlined safely.");
-  process.exit(1);
+var ROOT = __dirname;
+var SRC = path.join(ROOT, "index.html");
+var OUT = path.join(ROOT, "PLANT-GUIDE-single-file.html");
+
+function read(rel) {
+  return fs.readFileSync(path.join(ROOT, rel), "utf8");
 }
 
-let out = html
-  .replace('<link rel="stylesheet" href="styles.css">', "<style>\n" + css + "\n</style>")
-  .replace(
-    /<script src="version\.js"><\/script>\s*<script src="machine-icons\.js"><\/script>\s*<script src="data\/plant-map\.js"><\/script>\s*<script src="data\/interviews\.js"><\/script>\s*<script src="data\/procedures\.js"><\/script>\s*<script src="data\/troubleshooting\.js"><\/script>\s*<script src="app\.js"><\/script>/,
-    "<script>\n" + bundle + "\n</script>"
-  )
-  /* These only make sense on a real web address, so drop them from the single file. */
-  .replace(/^\s*<link rel="manifest"[^>]*>\s*$/m, "")
-  .replace(/^\s*<link rel="icon"[^>]*>\s*$/m, "")
-  .replace(/^\s*<link rel="apple-touch-icon"[^>]*>\s*$/m, "")
-  .replace(/\n<script>\s*\/\* Makes the app work with no internet[\s\S]*?<\/script>\n/, "\n");
+function main() {
+  var html = read("index.html");
 
-if (out.includes("styles.css") || out.includes('src="app.js"') ||
-    out.includes("Makes the app work with no internet")) {
-  console.error("Inlining failed — index.html no longer matches the expected tags.");
-  process.exit(1);
+  /* 1. the stylesheet link becomes a <style> block */
+  html = html.replace(
+    /[ \t]*<link rel="stylesheet" href="styles\.css">\s*/,
+    "\n<style>\n" + read("styles.css").trim() + "\n</style>\n"
+  );
+
+  /* 2. every <script src="..."> becomes the file itself */
+  var pulled = [];
+  html = html.replace(/[ \t]*<script src="([^"]+)"><\/script>\s*/g, function (m, src) {
+    var file = src.replace(/^\.\//, "");
+    var full = path.join(ROOT, file);
+    if (!fs.existsSync(full)) {
+      console.warn("  ! skipped missing file: " + file);
+      return "";
+    }
+    pulled.push(file);
+    return "\n<script>\n/* ---- " + file + " ---- */\n" +
+           fs.readFileSync(full, "utf8").trim() + "\n</script>\n";
+  });
+
+  /* 3. things that only make sense as a folder on a web server */
+  html = html.replace(/[ \t]*<link rel="manifest"[^>]*>\s*/, "");
+  html = html.replace(/[ \t]*<link rel="apple-touch-icon"[^>]*>\s*/, "");
+
+  /* the icon becomes a data url so the tab still shows it */
+  if (fs.existsSync(path.join(ROOT, "icons/icon.svg"))) {
+    var svg = read("icons/icon.svg");
+    var dataUrl = "data:image/svg+xml;base64," + Buffer.from(svg, "utf8").toString("base64");
+    html = html.replace(/<link rel="icon"[^>]*>/,
+                        '<link rel="icon" href="' + dataUrl + '" type="image/svg+xml">');
+  }
+
+  /* the service worker cannot register from a single file, and the
+     update check has no version.json to read — strip both */
+  html = html.replace(
+    /<script>\s*\/\* Makes the app work with no internet[\s\S]*?<\/script>\s*/,
+    "<!-- service worker left out of the single-file copy -->\n"
+  );
+
+  html = html.replace(
+    /<title>([^<]*)<\/title>/,
+    "<title>$1</title>\n<!-- Single-file copy. Built by build-one-file.js on " +
+    new Date().toISOString().slice(0, 10) + ". Edit the folder, not this file. -->"
+  );
+
+  fs.writeFileSync(OUT, html, "utf8");
+
+  var kb = (Buffer.byteLength(html, "utf8") / 1024).toFixed(0);
+  console.log("Built " + path.basename(OUT) + "  (" + kb + " KB)");
+  console.log("Pulled in:");
+  pulled.forEach(function (f) { console.log("  - " + f); });
+
+  /* a quick sanity check so a broken build does not go out quietly */
+  var problems = [];
+  if (/<script src=/.test(html)) problems.push("a <script src> was left behind");
+  if (/<link rel="stylesheet"/.test(html)) problems.push("the stylesheet link was left behind");
+  if (html.indexOf("window.PLANT_PROCEDURES") === -1) problems.push("the procedures did not go in");
+  if (html.indexOf("window.PLANT_MAP") === -1) problems.push("the plant map did not go in");
+  if (html.indexOf("var Plant =") === -1) problems.push("app.js did not go in");
+
+  if (problems.length) {
+    console.error("\nPROBLEMS:");
+    problems.forEach(function (p) { console.error("  ! " + p); });
+    process.exit(1);
+  }
+  console.log("\nChecks passed.");
 }
 
-const target = path.join(here, "PLANT-GUIDE-single-file.html");
-fs.writeFileSync(target, out, "utf8");
-console.log("Wrote " + target + "  (" + Math.round(out.length / 1024) + " KB)");
+main();

@@ -1,36 +1,85 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="control">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#1f6f4a">
+<meta name="theme-color" content="#0d1714">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Plant Guide">
 <title>Plant Guide — Startup, Shutdown, Lines &amp; Troubleshooting</title>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icons/icon-192.png" sizes="192x192">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="stylesheet" href="styles.css">
+<script>
+/* Put the saved look on before anything is painted, so the screen
+   never flashes the wrong colours. */
+(function () {
+  try {
+    var t = localStorage.getItem("plantguide:v1:theme");
+    if (t === "industrial" || t === "control") {
+      document.documentElement.setAttribute("data-theme", t);
+      var m = document.querySelector('meta[name="theme-color"]');
+      if (m) m.setAttribute("content", t === "industrial" ? "#15130f" : "#0d1714");
+    }
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
 
 <div id="draftBanner" class="draft-banner">
-  <strong>DRAFT COPY — EXAMPLE TEXT ONLY.</strong>
+  <span><strong>DRAFT COPY — EXAMPLE TEXT ONLY.</strong>
   Nothing in here has been approved yet. Do not follow these steps on the real plant until your
-  supervisor has checked and signed off every page.
+  supervisor has checked and signed off every page.</span>
 </div>
 
 <header class="topbar">
-  <button class="home-btn" onclick="location.hash='#/'" title="Back to the menu">Menu</button>
-  <button class="home-btn" onclick="location.hash='#/settings'" title="Settings, backup and updates">Settings</button>
-  <div class="brand">
-    <span class="brand-name" id="plantName">Plant Guide</span>
-    <span class="brand-sub">Startup &middot; Shutdown &middot; Lines &middot; Troubleshooting</span>
-  </div>
+  <a class="brand" href="#/" title="Back to the menu">
+    <span class="brand-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3.4 20.6h17.2"/>
+        <path d="M5.6 20.6V9.4l4.2 2.6V9.4l4.2 2.6V9.4l4.4 2.8v8.4"/>
+        <path d="M8.6 3.4h3.2v4.1"/>
+        <path d="M15.4 16.4h3"/>
+      </svg>
+    </span>
+    <span class="brand-text">
+      <span class="brand-name" id="plantName">Plant Guide</span>
+      <span class="brand-sub">Startup · Shutdown · Lines · Faults</span>
+    </span>
+  </a>
+
+  <button class="nav-btn" id="themeBtn" title="Switch between the two looks">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="8.6"/>
+      <path d="M12 3.4v17.2a8.6 8.6 0 0 0 0-17.2Z" fill="currentColor" stroke="none"/>
+    </svg>
+    <span class="lbl">Control Room</span>
+  </button>
+
+  <button class="nav-btn" onclick="location.hash='#/settings'" title="Settings, backup and updates">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="3.2"/>
+      <path d="M12 2.6v2.8M12 18.6v2.8M4.4 12H1.6M22.4 12h-2.8M6.6 6.6 4.6 4.6M19.4 19.4l-2-2M17.4 6.6l2-2M4.6 19.4l2-2"/>
+    </svg>
+    <span class="lbl">Settings</span>
+  </button>
+
   <form class="search" onsubmit="return Plant.onSearchSubmit(event)">
-    <input id="searchInput" type="search" placeholder="Search e.g. cooker, pump, smell" autocomplete="off">
+    <span class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+           stroke-linecap="round" aria-hidden="true">
+        <circle cx="10.6" cy="10.6" r="6.6"/><path d="M15.4 15.4 21 21"/>
+      </svg>
+      <input id="searchInput" type="search" placeholder="Search e.g. cooker, M141, smell"
+             autocomplete="off" aria-label="Search the manual">
+    </span>
     <button type="submit">Search</button>
   </form>
 </header>

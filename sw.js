@@ -1,8 +1,10 @@
-/* Service worker — this is what makes the app work with no internet.
-   If you change any content, bump CACHE_VERSION by one so phones pick
-   up the new version instead of the old cached one. */
+/* Service worker — makes the app work with no internet.
+   The cache name carries the version, so bumping the version
+   throws the old copy away and pulls everything down fresh.
+   Keep this version in step with version.js and version.json. */
 
-var CACHE_VERSION = "plant-guide-v3";
+var VERSION = "6";
+var CACHE = "plant-guide-v" + VERSION;
 
 var FILES = [
   "./",
@@ -10,82 +12,67 @@ var FILES = [
   "./styles.css",
   "./app.js",
   "./version.js",
+  "./version.json",
   "./machine-icons.js",
   "./data/plant-map.js",
   "./data/interviews.js",
   "./data/procedures.js",
   "./data/troubleshooting.js",
   "./manifest.json",
+  "./icons/icon.svg",
   "./icons/icon-192.png",
-  "./icons/icon-512.png",
-  "./icons/icon-maskable-512.png"
+  "./icons/icon-512.png"
 ];
 
-self.addEventListener("install", function (event) {
-  event.waitUntil(
-    caches.open(CACHE_VERSION).then(function (cache) {
-      /* Add one at a time so a single missing file does not fail the whole install. */
-      return Promise.all(
-        FILES.map(function (url) {
-          return cache.add(new Request(url, { cache: "reload" }))["catch"](function () {});
-        })
-      );
+self.addEventListener("install", function (e) {
+  e.waitUntil(
+    caches.open(CACHE).then(function (c) {
+      /* one missing file must not stop the whole install */
+      return Promise.all(FILES.map(function (f) {
+        return c.add(new Request(f, { cache: "reload" }))["catch"](function () {});
+      }));
     }).then(function () { return self.skipWaiting(); })
   );
 });
 
-self.addEventListener("activate", function (event) {
-  event.waitUntil(
+self.addEventListener("activate", function (e) {
+  e.waitUntil(
     caches.keys().then(function (keys) {
-      return Promise.all(
-        keys.filter(function (k) { return k !== CACHE_VERSION; })
-            .map(function (k) { return caches["delete"](k); })
-      );
+      return Promise.all(keys.map(function (k) {
+        if (k !== CACHE) return caches["delete"](k);
+      }));
     }).then(function () { return self.clients.claim(); })
   );
 });
 
-self.addEventListener("fetch", function (event) {
-  var req = event.request;
+self.addEventListener("fetch", function (e) {
+  var req = e.request;
   if (req.method !== "GET") return;
 
-  /* version.json must always come from the network, never the cache,
-     otherwise the app can never tell that a new version exists. */
-  if (req.url.indexOf("version.json") !== -1) {
-    event.respondWith(
-      fetch(req, { cache: "no-store" })["catch"](function () {
-        return new Response("{}", { headers: { "Content-Type": "application/json" } });
-      })
+  var url = new URL(req.url);
+  if (url.origin !== location.origin) return;
+
+  /* version.json must always come from the network when there is one,
+     otherwise the update check would read its own cached copy */
+  if (url.pathname.indexOf("version.json") !== -1) {
+    e.respondWith(
+      fetch(req, { cache: "no-store" })["catch"](function () { return caches.match(req); })
     );
     return;
   }
 
-  /* Page loads: try the network for a fresh copy, fall back to the cached page. */
-  if (req.mode === "navigate") {
-    event.respondWith(
-      fetch(req).then(function (res) {
-        var copy = res.clone();
-        caches.open(CACHE_VERSION).then(function (c) { c.put("./index.html", copy); });
-        return res;
-      })["catch"](function () {
-        return caches.match("./index.html").then(function (hit) {
-          return hit || caches.match("./");
-        });
-      })
-    );
-    return;
-  }
-
-  /* Everything else: use the cache first, it is faster and works offline. */
-  event.respondWith(
+  /* everything else: cache first, that is what makes it work offline */
+  e.respondWith(
     caches.match(req).then(function (hit) {
       if (hit) return hit;
       return fetch(req).then(function (res) {
-        if (res && res.status === 200 && res.type === "basic") {
+        if (res && res.ok && res.type === "basic") {
           var copy = res.clone();
-          caches.open(CACHE_VERSION).then(function (c) { c.put(req, copy); });
+          caches.open(CACHE).then(function (c) { c.put(req, copy); });
         }
         return res;
+      })["catch"](function () {
+        if (req.mode === "navigate") return caches.match("./index.html");
       });
     })
   );

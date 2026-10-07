@@ -1,16 +1,17 @@
 {
-  "name": "Rendering Plant Guide",
+  "name": "Plant Guide — Australian Tallow Producers",
   "short_name": "Plant Guide",
-  "description": "Startup, shutdown, line procedures and troubleshooting for the rendering plant.",
-  "start_url": "./",
+  "description": "Offline startup, shutdown, line and troubleshooting manual for the rendering plant.",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#f4f6f4",
-  "theme_color": "#1f6f4a",
+  "background_color": "#070b0a",
+  "theme_color": "#0d1714",
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "icons/icon.svg",     "sizes": "any",     "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png",     "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png",     "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png",     "purpose": "maskable" }
   ]
 }

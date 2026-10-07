@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <title>Plant Guide</title>
+  <rect width="512" height="512" fill="#0d1714"/>
+  <rect x="40" y="40" width="432" height="432" rx="72" fill="#12201b"/>
+  <g stroke="#1c342c" stroke-width="1.6">
+    <path d="M128 72V440M176 72V440M224 72V440M272 72V440M320 72V440M368 72V440M416 72V440"/>
+    <path d="M72 128H440M72 176H440M72 224H440M72 272H440M72 320H440M72 368H440M72 416H440"/>
+  </g>
+  <g fill="#2ce08c">
+    <rect x="96"  y="378" width="320" height="22" rx="10"/>
+    <rect x="104" y="288" width="58"  height="94"  rx="14"/>
+    <rect x="180" y="248" width="58"  height="134" rx="14"/>
+    <rect x="256" y="208" width="58"  height="174" rx="14"/>
+    <rect x="332" y="272" width="58"  height="110" rx="14"/>
+    <rect x="272" y="128" width="30"  height="84"  rx="8"/>
+  </g>
+  <circle cx="348" cy="170" r="26" fill="#ffb74d"/>
+</svg>

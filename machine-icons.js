@@ -175,6 +175,95 @@ window.MACHINE_ICONS = {
     '<path d="M9.8 14.6h4.4M9.8 17h4.4"/>' +
     '<path d="M4.4 21.6h15.2"/>',
 
+  /* ---- added after seeing the control room screens ---- */
+
+  /* screw conveyor */
+  screw:
+    '<rect x="2" y="9" width="20" height="6.6" rx="3.2"/>' +
+    '<path d="M4.6 9.5 7.1 15.1M8.1 9.5l2.5 5.6M11.6 9.5l2.5 5.6M15.1 9.5l2.5 5.6M18.6 9.5l1.9 4.4"/>' +
+    '<path d="M12 4.8v3.6"/>' +
+    '<path d="M10.5 7 12 8.5l1.5-1.5"/>' +
+    '<path d="M19.4 15.8v3"/>' +
+    '<path d="M4.6 18.8h3.2M14.6 18.8h3.2"/>',
+
+  /* bin discharger / live bottom bin */
+  binfeeder:
+    '<path d="M3.8 4h16.4l-2.2 8.2H6L3.8 4Z"/>' +
+    '<path d="M2.6 4h18.8"/>' +
+    '<path d="M8 6.8h8"/>' +
+    '<rect x="5" y="12.6" width="14" height="5.2" rx="2.6"/>' +
+    '<path d="M7.2 13.2 9.2 17.2M10.2 13.2l2 4M13.2 13.2l2 4M16.2 13.2l1.8 3.6"/>' +
+    '<path d="M12 18v2.6"/>',
+
+  /* pump with its motor */
+  pump:
+    '<circle cx="10.4" cy="11.4" r="5.4"/>' +
+    '<circle cx="10.4" cy="11.4" r="1.4"/>' +
+    '<path d="M10.4 6V3.2M5 11.4H2.2"/>' +
+    '<rect x="16" y="8.6" width="5.8" height="5.8" rx="1.4"/>' +
+    '<path d="M15.8 11.4h.2"/>' +
+    '<rect x="5.4" y="17.6" width="13.2" height="2.6" rx="1"/>',
+
+  /* extraction fan */
+  fan:
+    '<rect x="3.2" y="3.2" width="17.6" height="17.6" rx="2.6"/>' +
+    '<circle cx="12" cy="12" r="1.6"/>' +
+    '<path d="M12 10.4c0-2.7 1.5-4.3 3.5-3.6 1.4.5 1.3 2.5-.7 3.5"/>' +
+    '<path d="M13.4 12.9c2.4 1.2 2.9 3.2 1.2 4.4-1.2.9-2.8-.4-2.9-2.6"/>' +
+    '<path d="M10.5 12.9c-2.4 1.2-4 .2-3.6-1.8.2-1.4 2.3-1.8 3.7 0"/>',
+
+  /* air-cooled condenser */
+  condenser:
+    '<rect x="2.6" y="10.2" width="18.8" height="7.8" rx="1.6"/>' +
+    '<path d="M6 10.2v7.8M9.4 10.2v7.8M12.8 10.2v7.8M16.2 10.2v7.8"/>' +
+    '<circle cx="7.6" cy="6.2" r="2.8"/>' +
+    '<circle cx="16.4" cy="6.2" r="2.8"/>' +
+    '<path d="M7.6 3.4v5.6M4.8 6.2h5.6M16.4 3.4v5.6M13.6 6.2h5.6"/>' +
+    '<path d="M5 18v2.4M19 18v2.4"/>',
+
+  /* biofilter bed with irrigation sprays */
+  biofilter:
+    '<rect x="2.6" y="9.6" width="18.8" height="8.8" rx="1.8"/>' +
+    '<path d="M4.6 12.6h14.8M4.6 15.4h14.8"/>' +
+    '<path d="M12 2.8v3.6M6 6.4h12"/>' +
+    '<path d="M7.6 6.4 6.6 8.8M12 6.4v2.4M16.4 6.4l1 2.4"/>' +
+    '<path d="M1 14h1.6M21.4 14H23"/>' +
+    '<path d="M4.4 18.4v2.2M19.6 18.4v2.2"/>',
+
+  /* saturator — pressure vessel with air in water */
+  saturator:
+    '<path d="M7 7.2a5 2.6 0 0 1 10 0v8.8a5 2.6 0 0 1-10 0V7.2Z"/>' +
+    '<path d="M7 7.2a5 2.6 0 0 0 10 0"/>' +
+    '<circle cx="10.4" cy="12.2" r=".8"/><circle cx="13.6" cy="14" r=".8"/>' +
+    '<circle cx="12" cy="10.2" r=".8"/>' +
+    '<path d="M12 2.6v2.2"/>' +
+    '<path d="M9.6 19.4v2.2M14.4 19.4v2.2"/>',
+
+  /* chemical dosing pump and drum */
+  dosingpump:
+    '<path d="M5.4 9.4h8.8v8.8a1.8 1.8 0 0 1-1.8 1.8H7.2a1.8 1.8 0 0 1-1.8-1.8V9.4Z"/>' +
+    '<path d="M5.4 12h8.8"/>' +
+    '<circle cx="18" cy="6.6" r="2.6"/>' +
+    '<path d="M18 9.2v3M18 4V2.4"/>' +
+    '<path d="M9.8 9.4V6.6h5.6"/>' +
+    '<path d="M3.6 20.6h13"/>',
+
+  /* blood plant */
+  bloodplant:
+    '<rect x="4.6" y="6" width="14.8" height="13.4" rx="2"/>' +
+    '<path d="M4.6 9h14.8"/>' +
+    '<path d="M12 11.4c-1.6 2-2.6 3-2.6 4.3a2.6 2.6 0 0 0 5.2 0c0-1.3-1-2.3-2.6-4.3Z"/>' +
+    '<path d="M8 6V3.4h8V6"/>' +
+    '<path d="M7 19.4v2.2M17 19.4v2.2"/>',
+
+  /* valve */
+  valve:
+    '<path d="M4 7.4 12 12 4 16.6V7.4Z"/>' +
+    '<path d="M20 7.4 12 12l8 4.6V7.4Z"/>' +
+    '<path d="M12 12V6.6"/>' +
+    '<rect x="9.4" y="3" width="5.2" height="3.6" rx="1"/>' +
+    '<path d="M1.6 12H4M20 12h2.4"/>',
+
   /* fallback */
   generic:
     '<rect x="4" y="5" width="16" height="14" rx="2"/>' +
