@@ -157,7 +157,9 @@ var Plant = (function () {
     clock:    '<circle cx="12" cy="12" r="8.6"/><path d="M12 7.2V12l3.4 2.2"/>',
     user:     '<circle cx="12" cy="8.4" r="3.8"/><path d="M4.8 20.4a7.2 7.2 0 0 1 14.4 0"/>',
     bell:     '<path d="M6.6 10.4a5.4 5.4 0 0 1 10.8 0c0 4.4 2 5.8 2 5.8H4.6s2-1.4 2-5.8Z"/><path d="M10.2 19.4a2 2 0 0 0 3.6 0"/>',
-    shield:   '<path d="M12 3 5.4 5.6v5.6c0 4.4 2.8 7.6 6.6 9.2 3.8-1.6 6.6-4.8 6.6-9.2V5.6L12 3Z"/><path d="M9.2 12.2l2 2 3.6-4"/>'
+    shield:   '<path d="M12 3 5.4 5.6v5.6c0 4.4 2.8 7.6 6.6 9.2 3.8-1.6 6.6-4.8 6.6-9.2V5.6L12 3Z"/><path d="M9.2 12.2l2 2 3.6-4"/>',
+    camera:   '<path d="M3.4 8.6h3.2l1.6-2.4h7.6l1.6 2.4h3.2v10.2H3.4Z"/><circle cx="12" cy="13.4" r="3.4"/>',
+    pencil:   '<path d="M4 20h4.2L20 8.2 15.8 4 4 15.8Z"/><path d="M14.4 5.4 18.6 9.6"/>'
   };
 
   /* tiles and rows get a real icon where there is a sensible one,
@@ -389,6 +391,20 @@ var Plant = (function () {
       h += tile("#/p/" + p.id, PROC_ART[p.id], p.icon, p.title, p.subtitle || "",
                 { accent: accentFor("blue"), tint: tintFor("blue"),
                   meta: p.steps.length + " steps" });
+    });
+    h += "</div>";
+
+    /* ---- the step builders ---- */
+    h += '<h2>Write the real procedure</h2>';
+    h += '<p class="lede">Walk the plant with your boss and add a step at a time. Each step ' +
+         "takes your words and as many photos as you like, and you can slot a step in " +
+         "between two you have already written.</p>";
+    h += '<div class="tile-grid two">';
+    Object.keys(BUILDERS).forEach(function (k) {
+      var b = BUILDERS[k];
+      h += tile("#/build/" + k, b.art, "", b.title, b.sub,
+                { accent: accentFor(b.accent), tint: tintFor(b.accent),
+                  meta: "Words and photos, step by step" });
     });
     h += "</div>";
 
@@ -714,12 +730,29 @@ var Plant = (function () {
      ============================================================= */
 
   var AREA_W = 224, AREA_H = 122;
-  var NODE_W = 136, NODE_H = 104;
+  var NODE_W = 140, NODE_H = 128;
 
   var mapZoom = null;       /* null means "work it out and fill the screen" */
   var mapFitScale = 1;
   var mapStreams = null;
   var remountMap = null;
+
+  var DETAIL_KEY = STORE_PREFIX + "mapdetail";
+  var mapDetail = "simple";   /* "simple" hides the conveyors, "full" shows everything */
+
+  function loadDetail() {
+    try {
+      var d = localStorage.getItem(DETAIL_KEY);
+      if (d === "simple" || d === "full") mapDetail = d;
+    } catch (e) {}
+  }
+
+  function setDetail(d) {
+    mapDetail = d;
+    try { localStorage.setItem(DETAIL_KEY, d); } catch (e) {}
+    mapZoom = null;
+    route();
+  }
 
   function initStreams() {
     if (mapStreams || !MAP) return;
@@ -950,52 +983,80 @@ var Plant = (function () {
     return s + "</defs>";
   }
 
-  function edgePath(a, b, W, H, back) {
-    var hw = W / 2, hh = H / 2;
+  function edgePath(a, b, sa, sb, back) {
     var dx = b.x - a.x, dy = b.y - a.y;
 
     if (back) {
-      var low = Math.max(a.y, b.y) + hh + 24;
-      return "M" + a.x + " " + (a.y + hh) + " V" + low + " H" + b.x + " V" + (b.y + hh);
+      var low = Math.max(a.y + sa.hh, b.y + sb.hh) + 22;
+      return "M" + a.x + " " + (a.y + sa.hh) + " V" + low + " H" + b.x + " V" + (b.y + sb.hh);
     }
 
     /* straight down or up — this is how the snake folds */
     if (Math.abs(dx) < 3) {
       return dy > 0
-        ? "M" + a.x + " " + (a.y + hh) + " V" + (b.y - hh)
-        : "M" + a.x + " " + (a.y - hh) + " V" + (b.y + hh);
+        ? "M" + a.x + " " + (a.y + sa.hh) + " V" + (b.y - sb.hh)
+        : "M" + a.x + " " + (a.y - sa.hh) + " V" + (b.y + sb.hh);
     }
 
     /* same row — straight across, either direction */
     if (Math.abs(dy) < 3) {
       return dx > 0
-        ? "M" + (a.x + hw) + " " + a.y + " H" + (b.x - hw)
-        : "M" + (a.x - hw) + " " + a.y + " H" + (b.x + hw);
+        ? "M" + (a.x + sa.hw) + " " + a.y + " H" + (b.x - sb.hw)
+        : "M" + (a.x - sa.hw) + " " + a.y + " H" + (b.x + sb.hw);
     }
 
     /* close across but different row — drop out of the bottom and over */
-    if (Math.abs(dx) < W * 0.85) {
-      var sy = dy > 0 ? a.y + hh : a.y - hh;
-      var ey = dy > 0 ? b.y - hh : b.y + hh;
-      var jog = dy > 0 ? ey - 18 : ey + 18;
+    if (Math.abs(dx) < (sa.hw + sb.hw) * 1.5) {
+      var sy = dy > 0 ? a.y + sa.hh : a.y - sa.hh;
+      var ey = dy > 0 ? b.y - sb.hh : b.y + sb.hh;
+      var jog = dy > 0 ? ey - 16 : ey + 16;
       return "M" + a.x + " " + sy + " V" + jog + " H" + b.x + " V" + ey;
     }
 
     /* plenty of room — classic dogleg through the middle */
-    var ax = dx > 0 ? a.x + hw : a.x - hw;
-    var bx = dx > 0 ? b.x - hw : b.x + hw;
+    var ax = dx > 0 ? a.x + sa.hw : a.x - sa.hw;
+    var bx = dx > 0 ? b.x - sb.hw : b.x + sb.hw;
     var mx = (ax + bx) / 2;
     return "M" + ax + " " + a.y + " H" + mx + " V" + b.y + " H" + bx;
   }
 
-  function drawEdges(edges, pos, W, H, showLabels) {
+  function drawEdges(edges, pos, sizes, showLabels, cellW, cellH) {
     var s = "", labels = "";
+    var fallback = { hw: NODE_W / 2, hh: NODE_H / 2 };
+
+    /* Writing that lands on top of a machine is worse than no
+       writing at all, so a label is nudged up or down to find a
+       clear spot and dropped if it cannot. */
+    var cells = [];
+    if (cellW) {
+      Object.keys(pos).forEach(function (id) {
+        cells.push({ x: pos[id].x, y: pos[id].y });
+      });
+    }
+    function clear(lx, ly) {
+      if (!cellW) return true;
+      for (var i = 0; i < cells.length; i++) {
+        if (Math.abs(lx - cells[i].x) < cellW * 0.46 &&
+            Math.abs(ly - cells[i].y) < cellH * 0.42) return false;
+      }
+      return true;
+    }
+    function place(lx, ly) {
+      if (clear(lx, ly)) return ly;
+      var tries = [-18, 18, -32, 32, -46, 46];
+      for (var i = 0; i < tries.length; i++) {
+        if (clear(lx, ly + tries[i])) return ly + tries[i];
+      }
+      return null;
+    }
     (edges || []).forEach(function (e) {
       if (mapStreams[e.stream] === false) return;
       var a = pos[e.from], b = pos[e.to];
       if (!a || !b) return;
+      var sa = sizes[e.from] || fallback;
+      var sb = sizes[e.to] || fallback;
       var col = streamColor(e.stream);
-      var d = edgePath(a, b, W, H, e.back);
+      var d = edgePath(a, b, sa, sb, e.back);
 
       if (e.dashed) {
         s += '<path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="2.2" ' +
@@ -1012,14 +1073,26 @@ var Plant = (function () {
       }
 
       if (showLabels && e.label) {
+        /* put the writing in the GAP between the two machines, not
+           halfway between their middles, or a wide machine sits on
+           top of it */
+        var lx = (a.x + b.x) / 2;
+        if (Math.abs(b.y - a.y) < 3 && Math.abs(b.x - a.x) > 3) {
+          lx = b.x > a.x
+            ? ((a.x + sa.hw) + (b.x - sb.hw)) / 2
+            : ((a.x - sa.hw) + (b.x + sb.hw)) / 2;
+        }
         /* a return loop runs under the row, so its label goes down
            there with it rather than over the machines */
-        var lx = (a.x + b.x) / 2;
         var ly = e.back
-          ? Math.max(a.y, b.y) + H / 2 + 20
-          : ((a.y + b.y) / 2) - 8;
-        labels += '<text class="map-edgelabel" x="' + lx + '" y="' + ly + '" fill="' + col +
-                  '" style="stroke:' + canvasColor() + '">' + esc(e.label) + "</text>";
+          ? Math.max(a.y + sa.hh, b.y + sb.hh) + 18
+          : ((a.y + b.y) / 2) - 7;
+
+        var fy = e.back ? ly : place(lx, ly);
+        if (fy !== null) {
+          labels += '<text class="map-edgelabel" x="' + lx + '" y="' + fy + '" fill="' + col +
+                    '" style="stroke:' + canvasColor() + '">' + esc(e.label) + "</text>";
+        }
       }
     });
     return s + labels;
@@ -1077,43 +1150,355 @@ var Plant = (function () {
     return s;
   }
 
-  function drawMachinePlate(n, p, plantKey) {
+  /* =============================================================
+     HOW A MACHINE IS DRAWN
+     -------------------------------------------------------------
+     On your control room screens a tank looks like a tank and a
+     conveyor is just a bar. That is what makes them readable at a
+     glance. So each type gets its own silhouette and its own size,
+     rather than everything being the same rounded box.
+     ============================================================= */
+
+  var PLATE_H = 66;    /* reference height a shape is scaled against */
+  var PLATE_BAND = 80; /* the room set aside for the body, so a tall
+                          tank can never reach down into its own label */
+
+  function plateShape(type) {
+    switch (type) {
+      case "tank":          return { kind: "cyl",    w: 0.50, h: 1.14 };
+      case "silo":          return { kind: "silo",   w: 0.56, h: 1.16 };
+      case "bin":
+      case "binfeeder":     return { kind: "hopper", w: 0.70, h: 1.00 };
+      case "pit":           return { kind: "pit",    w: 0.80, h: 0.84 };
+      case "cooker":
+      case "dryer":         return { kind: "drum",   w: 1.00, h: 0.70 };
+      case "decanter":
+      case "press":
+      case "contrashear":   return { kind: "cone",   w: 0.96, h: 0.72 };
+      case "separator":     return { kind: "bowl",   w: 0.62, h: 1.00 };
+      case "evaporator":    return { kind: "column", w: 0.46, h: 1.14 };
+      case "boiler":
+      case "daf":
+      case "bloodplant":
+      case "biofilter":     return { kind: "box",    w: 0.92, h: 0.84 };
+      case "saturator":     return { kind: "cyl",    w: 0.44, h: 1.04 };
+      case "condenser":     return { kind: "box",    w: 0.92, h: 0.72 };
+      case "pump":
+      case "dosingpump":    return { kind: "circle", w: 0.40, h: 0.56 };
+      case "fan":           return { kind: "circle", w: 0.44, h: 0.62 };
+      case "mill":          return { kind: "circle", w: 0.52, h: 0.74 };
+      case "valve":         return { kind: "valve",  w: 0.40, h: 0.52 };
+      case "shaker":        return { kind: "deck",   w: 0.92, h: 0.56 };
+      case "screw":         return { kind: "bar",    w: 1.04, h: 0.40 };
+      case "metaldetector": return { kind: "arch",   w: 0.70, h: 0.80 };
+      case "bagging":       return { kind: "sack",   w: 0.58, h: 0.92 };
+      default:              return { kind: "box",    w: 0.88, h: 0.84 };
+    }
+  }
+
+  /* how far out from the middle an arrow should stop */
+  function plateSize(n, cellW) {
+    var s = plateShape(n.type);
+    var w = cellW * s.w, h = PLATE_H * s.h;
+    return { hw: w / 2 + 7, hh: h / 2 + 7, w: w, h: h, kind: s.kind };
+  }
+
+  /* a level bar inside a vessel, the way your screens show them */
+  function levelOf(n) {
+    if (!n.values) return null;
+    for (var i = 0; i < n.values.length; i++) {
+      var v = n.values[i];
+      if (!/level/i.test(String(v.k))) continue;
+      var m = String(v.v).match(/([\d.]+)\s*%/);
+      if (m) {
+        var pct = parseFloat(m[1]);
+        if (pct >= 0 && pct <= 100) return pct;
+      }
+    }
+    return null;
+  }
+
+  function platePath(kind, cx, cy, w, h) {
+    var x = cx - w / 2, y = cy - h / 2, r = w / 2;
+
+    switch (kind) {
+      case "cyl":
+        return "M" + x + " " + (y + 7) + " A" + r + " 7 0 0 1 " + (x + w) + " " + (y + 7) +
+               " V" + (y + h - 7) + " A" + r + " 7 0 0 1 " + x + " " + (y + h - 7) + " Z";
+      case "silo":
+        return "M" + x + " " + (y + 8) + " A" + r + " 8 0 0 1 " + (x + w) + " " + (y + 8) +
+               " V" + (y + h - 16) + " L" + cx + " " + (y + h) +
+               " L" + x + " " + (y + h - 16) + " Z";
+      case "hopper":
+        return "M" + x + " " + y + " H" + (x + w) + " L" + (cx + w * 0.17) + " " + (y + h) +
+               " H" + (cx - w * 0.17) + " Z";
+      case "pit":
+        return "M" + x + " " + y + " H" + (x + w) + " L" + (x + w - 7) + " " + (y + h) +
+               " H" + (x + 7) + " Z";
+      case "drum":
+        return "M" + (x + h / 2) + " " + y + " H" + (x + w - h / 2) +
+               " A" + (h / 2) + " " + (h / 2) + " 0 0 1 " + (x + w - h / 2) + " " + (y + h) +
+               " H" + (x + h / 2) +
+               " A" + (h / 2) + " " + (h / 2) + " 0 0 1 " + (x + h / 2) + " " + y + " Z";
+      case "cone":
+        return "M" + x + " " + y + " H" + (x + w * 0.62) + " L" + (x + w) + " " + cy +
+               " L" + (x + w * 0.62) + " " + (y + h) + " H" + x + " Z";
+      case "bowl":
+        return "M" + cx + " " + y + " L" + (x + w) + " " + (y + h * 0.42) +
+               " L" + (cx + w * 0.22) + " " + (y + h) + " H" + (cx - w * 0.22) +
+               " L" + x + " " + (y + h * 0.42) + " Z";
+      case "column":
+        return "M" + x + " " + (y + 9) + " A" + r + " 9 0 0 1 " + (x + w) + " " + (y + 9) +
+               " V" + (y + h - 9) + " A" + r + " 9 0 0 1 " + x + " " + (y + h - 9) + " Z";
+      case "circle":
+        var rr = Math.min(w, h) / 2;
+        return "M" + (cx - rr) + " " + cy + " a" + rr + " " + rr + " 0 1 0 " + (rr * 2) + " 0" +
+               " a" + rr + " " + rr + " 0 1 0 " + (-rr * 2) + " 0 Z";
+      case "valve":
+        return "M" + x + " " + y + " L" + (x + w) + " " + (y + h) +
+               " H" + x + " L" + (x + w) + " " + y + " Z";
+      case "deck":
+        return "M" + x + " " + (y + h * 0.3) + " L" + (x + w) + " " + y +
+               " V" + (y + h * 0.7) + " L" + x + " " + (y + h) + " Z";
+      case "bar":
+        return "M" + (x + h / 2) + " " + y + " H" + (x + w - h / 2) +
+               " a" + (h / 2) + " " + (h / 2) + " 0 0 1 0 " + h +
+               " H" + (x + h / 2) + " a" + (h / 2) + " " + (h / 2) + " 0 0 1 0 " + (-h) + " Z";
+      case "arch":
+        return "M" + x + " " + (y + h) + " V" + (y + w / 2) +
+               " A" + r + " " + (w / 2) + " 0 0 1 " + (x + w) + " " + (y + w / 2) +
+               " V" + (y + h) + " Z";
+      case "sack":
+        return "M" + (x + w * 0.2) + " " + y + " H" + (x + w * 0.8) +
+               " L" + (x + w) + " " + (y + h * 0.26) + " V" + (y + h) +
+               " H" + x + " V" + (y + h * 0.26) + " Z";
+      default:
+        var rad = dark() ? 9 : 2;
+        return "M" + (x + rad) + " " + y + " H" + (x + w - rad) +
+               " a" + rad + " " + rad + " 0 0 1 " + rad + " " + rad +
+               " V" + (y + h - rad) + " a" + rad + " " + rad + " 0 0 1 " + (-rad) + " " + rad +
+               " H" + (x + rad) + " a" + rad + " " + rad + " 0 0 1 " + (-rad) + " " + (-rad) +
+               " V" + (y + rad) + " a" + rad + " " + rad + " 0 0 1 " + rad + " " + (-rad) + " Z";
+    }
+  }
+
+  /* the dashed block that says "this carries on into the next area" */
+  function drawHandover(n, p, plantKey, cellW, hash) {
     var sk = skin(plantKey);
-    var x = p.x - NODE_W / 2, y = p.y - NODE_H / 2;
+    var w = cellW * 0.80, h = PLATE_H * 0.64;
+    var top = p.y - NODE_H / 2;
+    var cy = top + PLATE_BAND / 2;
+    var x = p.x - w / 2, y = cy - h / 2;
+
+    var s = hash
+      ? '<g class="mnode" onclick="Plant.go(\'' + hash + '\')" role="button" tabindex="0">'
+      : "<g>";
+
+    s += '<rect class="hit" x="' + (p.x - cellW / 2) + '" y="' + (p.y - NODE_H / 2) +
+         '" width="' + cellW + '" height="' + NODE_H + '" rx="8"/>';
+    s += '<rect class="plate" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h +
+         '" rx="' + (dark() ? 10 : 2) + '" fill="none" stroke="' + sk.stroke +
+         '" stroke-width="1.8" stroke-dasharray="7 6" opacity=".75"/>';
+    s += iconMarkup(hash ? "screw" : "generic", p.x, cy, 22, sk.accent, 1.4);
+
+    wrapLabel(n.label, Math.round(cellW / 7), 3).forEach(function (line, i) {
+      s += '<text class="map-nodelabel" x="' + p.x + '" y="' + (top + PLATE_BAND + 14 + i * 12.5) +
+           '" fill="' + (dark() ? "#8ba9a1" : "#4e4a42") + '">' + esc(line) + "</text>";
+    });
+
+    return s + "</g>";
+  }
+
+  function drawMachinePlate(n, p, plantKey, cellW) {
+    var sk = skin(plantKey);
+    var size = plateSize(n, cellW);
+    var sh = plateShape(n.type);
+    var w = size.w, h = size.h;
+    var top = p.y - NODE_H / 2;
+    var cy = top + PLATE_BAND / 2;
+
     var s = '<g class="mnode" onclick="Plant.go(\'#/m/' + n.id + '\')" role="button" ' +
             'tabindex="0" aria-label="' + esc(n.label) + '">';
 
-    s += '<rect class="plate" x="' + x + '" y="' + y + '" width="' + NODE_W + '" height="' + NODE_H +
-         '" rx="' + (dark() ? 13 : 3) + '" fill="' + sk.plate + '" stroke="' + sk.stroke +
-         '" stroke-width="' + (dark() ? 1.6 : 2.6) + '"' +
+    /* a transparent pad so the whole cell is tappable, not just the shape */
+    s += '<rect class="hit" x="' + (p.x - cellW / 2) + '" y="' + (p.y - NODE_H / 2) +
+         '" width="' + cellW + '" height="' + NODE_H + '" rx="8"/>';
+
+    var d = platePath(sh.kind, p.x, cy, w, h);
+    s += '<path class="plate" d="' + d + '" fill="' + sk.plate + '" stroke="' + sk.stroke +
+         '" stroke-width="' + (dark() ? 1.7 : 2.6) + '" stroke-linejoin="round"' +
          (dark() ? ' filter="url(#nodeGlow)"' : "") + "/>";
 
-    if (dark()) {
-      s += '<path d="M' + (x + 12) + " " + (y + 1) + " H" + (x + NODE_W - 12) +
-           '" stroke="' + sk.stroke + '" stroke-width="1.4" opacity=".4"/>';
-    } else {
-      s += '<rect x="' + x + '" y="' + y + '" width="' + NODE_W + '" height="6" fill="' +
-           sk.accent + '"/>';
+    /* level bar for vessels, like the bars on your screens */
+    var pct = levelOf(n);
+    if (pct !== null && /cyl|silo|hopper|column|box|pit/.test(sh.kind)) {
+      var bw = Math.max(7, w * 0.17);
+      var bx = p.x + w / 2 - bw - 4;
+      var byTop = cy - h / 2 + 10;
+      var bh = h - 20;
+      if (bh > 10) {
+        s += '<rect x="' + bx + '" y="' + byTop + '" width="' + bw + '" height="' + bh +
+             '" rx="2" fill="' + (dark() ? "#000" : "#efeee8") + '" opacity=".55"/>';
+        var fh = bh * (pct / 100);
+        s += '<rect x="' + bx + '" y="' + (byTop + bh - fh) + '" width="' + bw +
+             '" height="' + fh + '" rx="2" fill="' + sk.accent + '" opacity=".92"/>';
+      }
     }
 
-    s += iconMarkup(n.type, p.x, y + 30, 30, sk.accent, 1.45);
+    /* the icon sits in the body, scaled to whatever room there is */
+    var box = Math.max(16, Math.min(30, Math.min(w, h) * 0.72));
+    s += iconMarkup(n.type, p.x, cy, box, sk.accent, 1.45);
 
-    var ty = y + 60;
+    /* writing goes underneath the machine, not inside it */
+    var ty = top + PLATE_BAND + 14;
     if (n.tag) {
       s += '<text class="map-tag" x="' + p.x + '" y="' + ty + '" fill="' + sk.accent + '">' +
            esc(n.tag) + "</text>";
-      ty += 15;
+      ty += 13;
     }
-    wrapLabel(n.label, 18, 2).forEach(function (line, i) {
-      s += '<text class="map-nodelabel" x="' + p.x + '" y="' + (ty + i * 13) + '" fill="' +
+    wrapLabel(n.label, Math.round(cellW / 7.2), n.tag ? 2 : 3).forEach(function (line, i) {
+      s += '<text class="map-nodelabel" x="' + p.x + '" y="' + (ty + i * 12.5) + '" fill="' +
            sk.text + '">' + esc(line) + "</text>";
     });
 
-    if (n.guess) s += guessBadge(x + NODE_W - 13, y + 13);
-    if (n.alarms && n.alarms.length) s += alarmBadge(x + 13, y + 13);
+    /* badges sit on the corners of the cell, so they are always in
+       the same place whatever shape the machine is */
+    var cl = p.x - cellW / 2, ct = p.y - NODE_H / 2;
+    if (n.guess) s += guessBadge(cl + cellW - 13, ct + 13);
+    if (n.alarms && n.alarms.length) s += alarmBadge(cl + 13, ct + 13);
 
     s += "</g>";
     return s;
+  }
+
+  /* =============================================================
+     SIMPLE VIEW
+     -------------------------------------------------------------
+     On your screens a run of conveyors is a line, not a row of
+     boxes. Simple view does the same: it hides the conveyors and
+     inline valves and names them on the arrow instead. Plant 1
+     Receival drops from 17 boxes to 4.
+     ============================================================= */
+
+  var MINOR_TYPES = { screw: 1, valve: 1 };
+
+  function isMinor(n) {
+    return !!MINOR_TYPES[n.type] && !n.keepInSimple;
+  }
+
+  function viaLabel(list) {
+    if (!list.length) return null;
+    if (list.length === 1) return list[0];
+    if (list.length === 2) return list.join(", ");
+    return list[0] + " \u2026 " + list[list.length - 1] + " (" + list.length + ")";
+  }
+
+  function simplifyGraph(nodes, edges, inLabel, outLabel) {
+    nodes = nodes || [];
+    edges = edges || [];
+
+    var major = nodes.filter(function (n) { return !isMinor(n); });
+    if (!major.length || major.length === nodes.length) return null;
+
+    var byId = {};
+    nodes.forEach(function (n) { byId[n.id] = n; });
+
+    var out = {}, hasIncoming = {};
+    edges.forEach(function (e) {
+      if (!byId[e.from] || !byId[e.to]) return;
+      (out[e.from] = out[e.from] || []).push(e);
+      hasIncoming[e.to] = true;
+    });
+
+    var newEdges = [];
+    var seenPair = {};
+    var needIn = false, needOut = false;
+
+    /* Walk forward from a starting point, stepping over the minor
+       machines and collecting their names. Where a run leaves the
+       area entirely it lands on a hand-over block instead of just
+       disappearing. */
+    function walk(startId, startIsEntry) {
+      var stack = [{ id: startId, through: [], stream: null, dashed: false,
+                     label: null, back: false, depth: 0 }];
+      var guard = 0;
+
+      while (stack.length && guard++ < 6000) {
+        var cur = stack.pop();
+        var outs = out[cur.id] || [];
+
+        /* a run that stops at a conveyor is heading out of the area */
+        if (!outs.length && cur.through.length) {
+          var ko = startId + ">__out__";
+          if (!seenPair[ko]) {
+            seenPair[ko] = 1;
+            needOut = true;
+            newEdges.push({
+              from: startId, to: "__out__",
+              stream: cur.stream || "meal", dashed: cur.dashed,
+              label: cur.label || viaLabel(cur.through)
+            });
+          }
+          continue;
+        }
+
+        outs.forEach(function (e) {
+          var next = byId[e.to];
+          if (!next) return;
+          var stream = cur.stream || e.stream;
+          var dashed = cur.dashed || !!e.dashed;
+          var label = cur.label || e.label || null;
+
+          if (isMinor(next)) {
+            if (cur.depth > 26) return;
+            stack.push({
+              id: next.id,
+              through: cur.through.concat([next.tag || next.label]),
+              stream: stream, dashed: dashed, label: label,
+              back: cur.back || !!e.back,
+              depth: cur.depth + 1
+            });
+            return;
+          }
+
+          var from = startIsEntry ? "__in__" : startId;
+          var key = from + ">" + next.id;
+          if (seenPair[key]) return;
+          seenPair[key] = 1;
+          if (startIsEntry) needIn = true;
+
+          newEdges.push({
+            from: from, to: next.id, stream: stream,
+            dashed: dashed, back: cur.back || !!e.back,
+            label: label || viaLabel(cur.through)
+          });
+        });
+      }
+    }
+
+    major.forEach(function (m) { walk(m.id, false); });
+
+    /* conveyor runs that start the area, with nothing feeding them */
+    nodes.forEach(function (n) {
+      if (isMinor(n) && !hasIncoming[n.id]) walk(n.id, true);
+    });
+
+    var finalNodes = major.slice();
+
+    if (needIn) {
+      finalNodes.unshift({
+        id: "__in__", label: inLabel || "Comes in from another area",
+        type: "generic", keepInSimple: true, handover: true
+      });
+    }
+    if (needOut) {
+      finalNodes.push({
+        id: "__out__", label: outLabel || "Goes on to another area",
+        type: "generic", keepInSimple: true, handover: true
+      });
+    }
+
+    return { nodes: finalNodes, edges: newEdges, hidden: nodes.length - major.length };
   }
 
   /* ---------- the stage ---------- */
@@ -1139,6 +1524,18 @@ var Plant = (function () {
                svgIcon("fit", 17) + "<span>Fit</span></button>" +
              '<button class="icon-btn" id="fullBtn" onclick="Plant.mapFull()" ' +
                'title="Full screen" aria-label="Full screen">' + svgIcon("expand", 18) + "</button>" +
+           "</div>";
+  }
+
+  function detailToggle() {
+    return '<div class="map-overlay bl">' +
+             '<div class="seg">' +
+               '<button class="seg-btn' + (mapDetail === "simple" ? " on" : "") + '" ' +
+                 'onclick="Plant.setDetail(\'simple\')">Simple</button>' +
+               '<button class="seg-btn' + (mapDetail === "full" ? " on" : "") + '" ' +
+                 'onclick="Plant.setDetail(\'full\')">Every machine</button>' +
+             "</div>" +
+             '<span class="detail-hint" id="detailHint"></span>' +
            "</div>";
   }
 
@@ -1181,11 +1578,19 @@ var Plant = (function () {
     var scale = mapZoom || best.scale;
     var L = best.L;
 
+    /* each machine knows its own size, so arrows stop at the shape
+       rather than at an invisible box around it */
+    var sizes = {};
+    spec.nodes.forEach(function (n) {
+      sizes[n.id] = spec.sizeOf ? spec.sizeOf(n) : { hw: spec.W / 2, hh: spec.H / 2 };
+    });
+
     var svg = '<svg class="plantmap" viewBox="0 0 ' + L.width + " " + L.height + '" ' +
               'width="' + Math.round(L.width * scale) + '" height="' +
               Math.round(L.height * scale) + '" xmlns="http://www.w3.org/2000/svg">';
     svg += svgDefs();
-    svg += drawEdges(spec.edges, L.pos, spec.W, spec.H, spec.labels && scale >= 0.55);
+    svg += drawEdges(spec.edges, L.pos, sizes, spec.labels && scale >= 0.5,
+                     spec.W, spec.H);
     spec.nodes.forEach(function (n) {
       var p = L.pos[n.id];
       if (p) svg += spec.paint(n, p);
@@ -1311,6 +1716,7 @@ var Plant = (function () {
         nodes: nodes, edges: edges,
         W: AREA_W, H: AREA_H, gapX: 58, gapY: 26,
         labels: false, maxScale: 1.15,
+        sizeOf: function () { return { hw: AREA_W / 2, hh: AREA_H / 2 }; },
         paint: function (n, p) { return drawAreaPlate(n, p); }
       });
     };
@@ -1344,6 +1750,7 @@ var Plant = (function () {
     h += '<div class="map-stage" id="mapStage">' +
            streamChips() +
            mapOverlayZoom() +
+           detailToggle() +
            '<div class="map-scroll" id="mapScroll"></div>' +
          "</div>";
 
@@ -1389,13 +1796,49 @@ var Plant = (function () {
     view.innerHTML = h;
     window.scrollTo(0, 0);
 
+    var feeders = AREAS.filter(function (x) { return (x.to || []).indexOf(a.id) !== -1; });
+    var targets = (a.to || []).map(areaById).filter(Boolean);
+
+    var inLabel = feeders.length
+      ? "From " + feeders.map(function (f) { return f.title; }).join(" and ")
+      : "Raw material in";
+    var outLabel = targets.length
+      ? "On to " + targets.map(function (t) { return t.title; }).join(" and ")
+      : "Out of this area";
+
     remountMap = function () {
+      var simple = mapDetail === "simple"
+        ? simplifyGraph(a.nodes, a.edges, inLabel, outLabel)
+        : null;
+      var useNodes = simple ? simple.nodes : (a.nodes || []);
+      var useEdges = simple ? simple.edges : (a.edges || []);
+
+      /* with fewer machines on screen they can be drawn bigger */
+      var cellW = simple ? 168 : NODE_W;
+
+      var jump = {
+        __in__: feeders.length ? "#/map/" + feeders[0].id : null,
+        __out__: targets.length ? "#/map/" + targets[0].id : null
+      };
+
       paintMap({
-        nodes: a.nodes || [], edges: a.edges || [],
-        W: NODE_W, H: NODE_H, gapX: 46, gapY: 22,
-        labels: true, maxScale: 1.3,
-        paint: function (n, p) { return drawMachinePlate(n, p, a.plant); }
+        nodes: useNodes, edges: useEdges,
+        W: cellW, H: NODE_H, gapX: simple ? 58 : 44, gapY: 24,
+        labels: true, maxScale: simple ? 1.5 : 1.3,
+        sizeOf: function (n) { return plateSize(n, cellW); },
+        paint: function (n, p) {
+          return n.handover
+            ? drawHandover(n, p, a.plant, cellW, jump[n.id])
+            : drawMachinePlate(n, p, a.plant, cellW);
+        }
       });
+
+      var hint = document.getElementById("detailHint");
+      if (hint) {
+        hint.textContent = simple
+          ? simple.hidden + " conveyors and valves folded into the arrows"
+          : (a.nodes || []).length + " machines, everything shown";
+      }
     };
     remountMap();
   }
@@ -2058,6 +2501,657 @@ var Plant = (function () {
   }
 
   /* =============================================================
+     PROCEDURE BUILDER
+     -------------------------------------------------------------
+     Walk the plant with your boss and build the real startup and
+     shutdown, one step at a time. Each step takes words and photos.
+     You can add a step at the end, or slot one in between two you
+     have already written.
+
+     Photos are shrunk before they are saved, which keeps the file
+     small enough to email and small enough to send back to me.
+     ============================================================= */
+
+  var MAX_PHOTO_PX = 1200;     /* long side after shrinking */
+  var PHOTO_QUALITY = 0.72;
+  var THUMB_PX = 200;
+
+  var BUILDERS = {
+    startup: {
+      id: "startup",
+      title: "Build the real Plant Startup",
+      sub: "Walk the plant with your boss and add a step at a time",
+      accent: "green",
+      art: "play",
+      intro: "Ask \u201Cwhat do you do first?\u201D then keep saying \u201Cand then?\u201D. " +
+             "Take a photo at every step \u2014 the panel, the valve, the gauge, whatever he " +
+             "points at. Photos save you writing a paragraph."
+    },
+    shutdown: {
+      id: "shutdown",
+      title: "Build the real Plant Shutdown",
+      sub: "Same again, from last feed to plant dead",
+      accent: "blue",
+      art: "stop",
+      intro: "Shutdown is mostly about emptying things in the right order before they cool " +
+             "down. Photograph anything that has to be left running, drained or locked out."
+    }
+  };
+
+  var STEP_EXTRAS = [
+    { k: "check",  label: "How you know it worked" },
+    { k: "danger", label: "What is dangerous here" },
+    { k: "who",    label: "Who does it" },
+    { k: "time",   label: "How long" }
+  ];
+
+  /* ---------- storage: IndexedDB where we can, otherwise localStorage ---------- */
+
+  var DB_NAME = "plantguide-builder";
+  var dbPromise = null;
+  var idbBroken = false;
+
+  function openDb() {
+    if (idbBroken) return Promise.reject(new Error("no indexeddb"));
+    if (dbPromise) return dbPromise;
+    dbPromise = new Promise(function (resolve, reject) {
+      if (!window.indexedDB) { idbBroken = true; reject(new Error("no indexeddb")); return; }
+      var req;
+      try { req = indexedDB.open(DB_NAME, 1); }
+      catch (e) { idbBroken = true; reject(e); return; }
+      req.onupgradeneeded = function () {
+        var d = req.result;
+        if (!d.objectStoreNames.contains("docs")) d.createObjectStore("docs");
+        if (!d.objectStoreNames.contains("photos")) d.createObjectStore("photos");
+      };
+      req.onsuccess = function () { resolve(req.result); };
+      req.onerror = function () { idbBroken = true; reject(req.error); };
+      req.onblocked = function () { idbBroken = true; reject(new Error("blocked")); };
+    });
+    return dbPromise;
+  }
+
+  function idb(store, mode, fn) {
+    return openDb().then(function (d) {
+      return new Promise(function (resolve, reject) {
+        var tx = d.transaction(store, mode);
+        var rq = fn(tx.objectStore(store));
+        tx.oncomplete = function () { resolve(rq && rq.result); };
+        tx.onerror = function () { reject(tx.error); };
+        tx.onabort = function () { reject(tx.error); };
+      });
+    });
+  }
+
+  function lsKey(kind, key) { return STORE_PREFIX + "b:" + kind + ":" + key; }
+
+  function storeGet(kind, key) {
+    return idb(kind === "photos" ? "photos" : "docs", "readonly", function (os) {
+      return os.get(key);
+    })["catch"](function () {
+      try {
+        var raw = localStorage.getItem(lsKey(kind, key));
+        return raw ? JSON.parse(raw) : undefined;
+      } catch (e) { return undefined; }
+    });
+  }
+
+  function storePut(kind, key, value) {
+    return idb(kind === "photos" ? "photos" : "docs", "readwrite", function (os) {
+      return os.put(value, key);
+    })["catch"](function () {
+      try {
+        localStorage.setItem(lsKey(kind, key), JSON.stringify(value));
+        return true;
+      } catch (e) {
+        alert("This device would not let me save. If you are opening the app straight from a " +
+              "folder, try the web link instead \u2014 browsers give it much more room.");
+        throw e;
+      }
+    });
+  }
+
+  function storeDel(kind, key) {
+    return idb(kind === "photos" ? "photos" : "docs", "readwrite", function (os) {
+      return os["delete"](key);
+    })["catch"](function () {
+      try { localStorage.removeItem(lsKey(kind, key)); } catch (e) {}
+    });
+  }
+
+  /* ---------- the document in memory ---------- */
+
+  var buildDoc = null;     /* { id, by, date, steps: [...] } */
+  var photoCache = {};     /* photoId -> { thumb, full } */
+
+  function blankStep() {
+    return {
+      id: "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      text: "", check: "", danger: "", who: "", time: "", photos: []
+    };
+  }
+
+  function loadBuild(id) {
+    return storeGet("docs", id).then(function (doc) {
+      buildDoc = doc && doc.steps
+        ? doc
+        : { id: id, by: "", date: "", steps: [] };
+      buildDoc.id = id;
+      return buildDoc;
+    });
+  }
+
+  var saveTimer2 = null;
+
+  function saveBuild(immediate) {
+    if (!buildDoc) return;
+    var doc = JSON.parse(JSON.stringify(buildDoc));
+    clearTimeout(saveTimer2);
+    var run = function () {
+      storePut("docs", doc.id, doc).then(function () { flashSaved(); });
+    };
+    if (immediate) run(); else saveTimer2 = setTimeout(run, 400);
+  }
+
+  function flashSaved() {
+    var f = document.getElementById("buildSaved");
+    if (!f) return;
+    f.textContent = "Saved";
+    f.classList.add("just");
+    setTimeout(function () {
+      f.textContent = "Saves as you type";
+      f.classList.remove("just");
+    }, 1300);
+  }
+
+  /* ---------- photos ---------- */
+
+  function shrinkImage(file, maxPx, quality) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function () {
+        var img = new Image();
+        img.onload = function () {
+          var w = img.naturalWidth, h = img.naturalHeight;
+          var scale = Math.min(1, maxPx / Math.max(w, h));
+          var cw = Math.max(1, Math.round(w * scale));
+          var ch = Math.max(1, Math.round(h * scale));
+          var c = document.createElement("canvas");
+          c.width = cw; c.height = ch;
+          var ctx = c.getContext("2d");
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(0, 0, cw, ch);
+          ctx.drawImage(img, 0, 0, cw, ch);
+          try { resolve(c.toDataURL("image/jpeg", quality)); }
+          catch (e) { reject(e); }
+        };
+        img.onerror = function () { reject(new Error("not a picture")); };
+        img.src = reader.result;
+      };
+      reader.onerror = function () { reject(reader.error); };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function addPhotos(stepId, input) {
+    var files = Array.prototype.slice.call(input.files || []);
+    if (!files.length) return;
+    input.value = "";
+
+    var step = buildDoc.steps.filter(function (s) { return s.id === stepId; })[0];
+    if (!step) return;
+
+    setBusy(true, "Shrinking " + files.length + (files.length === 1 ? " photo" : " photos") + "\u2026");
+
+    var chain = Promise.resolve();
+    files.forEach(function (f) {
+      chain = chain.then(function () {
+        if (!/^image\//.test(f.type)) return null;
+        return Promise.all([
+          shrinkImage(f, MAX_PHOTO_PX, PHOTO_QUALITY),
+          shrinkImage(f, THUMB_PX, 0.6)
+        ]).then(function (both) {
+          var pid = "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+          var rec = { id: pid, full: both[0], thumb: both[1], name: f.name || "photo" };
+          photoCache[pid] = rec;
+          step.photos.push(pid);
+          return storePut("photos", pid, rec);
+        });
+      });
+    });
+
+    chain.then(function () {
+      saveBuild(true);
+      setBusy(false);
+      renderBuilder(buildDoc.id, stepId);
+    })["catch"](function (e) {
+      setBusy(false);
+      alert("Could not add that picture. " + (e && e.message ? e.message : ""));
+    });
+  }
+
+  function removePhoto(stepId, pid) {
+    if (!confirm("Remove this photo?")) return;
+    var step = buildDoc.steps.filter(function (s) { return s.id === stepId; })[0];
+    if (!step) return;
+    step.photos = step.photos.filter(function (x) { return x !== pid; });
+    delete photoCache[pid];
+    storeDel("photos", pid);
+    saveBuild(true);
+    renderBuilder(buildDoc.id, stepId);
+  }
+
+  function loadPhotos(doc) {
+    var ids = [];
+    doc.steps.forEach(function (s) {
+      (s.photos || []).forEach(function (p) { if (!photoCache[p]) ids.push(p); });
+    });
+    if (!ids.length) return Promise.resolve();
+    return Promise.all(ids.map(function (id) {
+      return storeGet("photos", id).then(function (rec) {
+        if (rec) photoCache[id] = rec;
+      })["catch"](function () {});
+    }));
+  }
+
+  function setBusy(on, msg) {
+    var el = document.getElementById("buildBusy");
+    if (!el) return;
+    el.textContent = on ? (msg || "Working\u2026") : "";
+    el.style.display = on ? "" : "none";
+  }
+
+  /* ---------- step editing ---------- */
+
+  function buildField(stepId, key, value) {
+    buildDoc.steps.forEach(function (s) {
+      if (s.id === stepId) s[key] = value;
+    });
+    saveBuild();
+  }
+
+  function addStepAt(index) {
+    var step = blankStep();
+    if (index === undefined || index === null || index > buildDoc.steps.length) {
+      buildDoc.steps.push(step);
+    } else {
+      buildDoc.steps.splice(index, 0, step);
+    }
+    saveBuild(true);
+    renderBuilder(buildDoc.id, step.id);
+  }
+
+  function moveStep(index, dir) {
+    var j = index + dir;
+    if (j < 0 || j >= buildDoc.steps.length) return;
+    var tmp = buildDoc.steps[index];
+    buildDoc.steps[index] = buildDoc.steps[j];
+    buildDoc.steps[j] = tmp;
+    saveBuild(true);
+    renderBuilder(buildDoc.id, tmp.id);
+  }
+
+  function deleteStep(index) {
+    var s = buildDoc.steps[index];
+    if (!s) return;
+    var hasStuff = String(s.text || "").trim() || (s.photos || []).length;
+    if (hasStuff && !confirm("Delete step " + (index + 1) +
+        "? The words and photos in it will be lost.")) return;
+    (s.photos || []).forEach(function (p) { storeDel("photos", p); delete photoCache[p]; });
+    buildDoc.steps.splice(index, 1);
+    saveBuild(true);
+    renderBuilder(buildDoc.id);
+  }
+
+  /* ---------- the page ---------- */
+
+  function renderBuild(id) {
+    var cfg = BUILDERS[id];
+    if (!cfg) return renderNotFound();
+    view.className = "view";
+    view.innerHTML = '<p class="empty">Loading what you have written so far\u2026</p>';
+    loadBuild(id)
+      .then(function (doc) { return loadPhotos(doc); })
+      .then(function () { renderBuilder(id); })
+      ["catch"](function () {
+        buildDoc = { id: id, by: "", date: "", steps: [] };
+        renderBuilder(id);
+      });
+  }
+
+  function photoCount(doc) {
+    var n = 0;
+    doc.steps.forEach(function (s) { n += (s.photos || []).length; });
+    return n;
+  }
+
+  function renderBuilder(id, focusStepId) {
+    var cfg = BUILDERS[id];
+    var doc = buildDoc;
+    var written = doc.steps.filter(function (s) { return String(s.text || "").trim(); }).length;
+    var photos = photoCount(doc);
+
+    var h = "";
+
+    h += '<div class="machine-head" style="border-left-color:' + accentFor(cfg.accent) + '">' +
+           '<span class="machine-icon" style="color:' + accentFor(cfg.accent) + '">' +
+             svgIcon(cfg.art, 36, 1.5) + "</span>" +
+           '<div class="machine-headtext"><h1>' + esc(cfg.title) + "</h1>" +
+           '<p class="lede" style="margin:5px 0 0">' + esc(cfg.sub) + "</p></div></div>";
+
+    h += '<div class="callout info"><strong>How to do this</strong>' + esc(cfg.intro) + "</div>";
+
+    h += '<div class="card"><h3>Who is writing this</h3><div class="signoff">' +
+           '<label class="field"><span>Your name</span>' +
+             '<input id="buildBy" type="text" value="' + esc(doc.by) + '" placeholder="Your name">' +
+           "</label>" +
+           '<label class="field"><span>Date, and who you walked with</span>' +
+             '<input id="buildDate" type="text" value="' + esc(doc.date) + '" ' +
+             'placeholder="e.g. 8 Oct, with Dave">' +
+           "</label></div></div>";
+
+    h += '<div class="progress-wrap"><div class="progress-card">' +
+           '<span class="count">' + doc.steps.length +
+             (doc.steps.length === 1 ? " step" : " steps") + "</span>" +
+           '<span class="count">' + photos + (photos === 1 ? " photo" : " photos") + "</span>" +
+           '<span class="bar"><span style="width:' +
+             (doc.steps.length ? Math.round(written / doc.steps.length * 100) : 0) + '%"></span></span>' +
+           '<span class="saved-flag" id="buildSaved">Saves as you type</span>' +
+           '<span class="saved-flag" id="buildBusy" style="display:none"></span>' +
+         "</div></div>";
+
+    if (!doc.steps.length) {
+      h += '<div class="empty">No steps yet. Tap <b>Add the first step</b> below, ' +
+           "write what he says, and take a photo.</div>";
+    }
+
+    doc.steps.forEach(function (s, i) {
+      h += '<div class="bstep" id="bstep-' + s.id + '">';
+
+      h += '<div class="bstep-head">' +
+             '<span class="step-no num">' + (i + 1) + "</span>" +
+             '<div class="bstep-tools">' +
+               '<button class="btn small ghost" onclick="Plant.addStepAt(' + i + ')" ' +
+                 'title="Put a new step in above this one">' + svgIcon("plus", 14) +
+                 "<span>Insert above</span></button>" +
+               '<button class="icon-btn" onclick="Plant.moveStep(' + i + ',-1)" ' +
+                 'title="Move up" aria-label="Move up"' + (i === 0 ? " disabled" : "") + ">" +
+                 svgIcon("back", 16) + "</button>" +
+               '<button class="icon-btn" onclick="Plant.moveStep(' + i + ',1)" ' +
+                 'title="Move down" aria-label="Move down"' +
+                 (i === doc.steps.length - 1 ? " disabled" : "") + ">" +
+                 svgIcon("next", 16) + "</button>" +
+               '<button class="icon-btn danger" onclick="Plant.deleteStep(' + i + ')" ' +
+                 'title="Delete this step" aria-label="Delete">' + svgIcon("trash", 16) +
+               "</button>" +
+             "</div></div>";
+
+      h += '<label class="field wide"><span>What you do</span>' +
+             '<textarea class="ans bstep-text" rows="3" data-step="' + s.id + '" data-k="text" ' +
+             'placeholder="Write it the way he says it">' + esc(s.text) + "</textarea></label>";
+
+      /* photos */
+      h += '<div class="bphotos">';
+      (s.photos || []).forEach(function (pid) {
+        var rec = photoCache[pid];
+        h += '<div class="bphoto">' +
+               (rec
+                 ? '<img src="' + rec.thumb + '" alt="step photo" ' +
+                   'onclick="Plant.viewPhoto(\'' + pid + '\')">'
+                 : '<div class="bphoto-missing">photo</div>') +
+               '<button class="bphoto-x" onclick="Plant.removePhoto(\'' + s.id + "','" + pid +
+                 '\')" title="Remove this photo" aria-label="Remove photo">&times;</button>' +
+             "</div>";
+      });
+      h += '<label class="bphoto-add">' +
+             svgIcon("camera", 22) +
+             "<span>Add photo</span>" +
+             '<input type="file" accept="image/*" capture="environment" multiple ' +
+               'onchange="Plant.addPhotos(\'' + s.id + '\', this)">' +
+           "</label>";
+      h += "</div>";
+
+      /* the optional extras, folded away so the page stays simple */
+      h += '<details class="bextras"' + (s.check || s.danger || s.who || s.time ? " open" : "") + ">" +
+             "<summary>Add the extra detail (optional)</summary>";
+      STEP_EXTRAS.forEach(function (f) {
+        h += '<label class="field wide"><span>' + esc(f.label) + "</span>" +
+               '<input class="ans" type="text" data-step="' + s.id + '" data-k="' + f.k + '" ' +
+               'value="' + esc(s[f.k] || "") + '"></label>';
+      });
+      h += "</details>";
+
+      h += "</div>";
+    });
+
+    h += '<div class="btn-row">' +
+           '<button class="btn primary wide" onclick="Plant.addStepAt()">' +
+             svgIcon("plus", 18) + "<span>" +
+             (doc.steps.length ? "Add another step at the end" : "Add the first step") +
+             "</span></button>" +
+         "</div>";
+
+    /* ---- sharing ---- */
+    h += '<h2>When you are done</h2>';
+    h += '<div class="card"><h3>Send it to me, or to your boss</h3>' +
+           '<p class="step-detail" style="margin:0 0 14px">Three ways out, depending on what ' +
+           "you want to do with it.</p>" +
+           '<div class="kv"><span><b>Make a report</b><br>One file with every step and every ' +
+             "photo in it. Open it and print to PDF for your boss.</span>" +
+             '<b><button class="btn small primary" onclick="Plant.buildReport()">' +
+             svgIcon("download", 15) + "<span>Make report</span></button></b></div>" +
+           '<div class="kv"><span><b>Save the photos</b><br>Saves each photo as its own file, ' +
+             "already shrunk small enough to send me here without jamming the chat.</span>" +
+             '<b><button class="btn small" onclick="Plant.buildPhotos()">' +
+             svgIcon("download", 15) + "<span>Save " + photos + "</span></button></b></div>" +
+           '<div class="kv"><span><b>Copy the words</b><br>All the writing as plain text, ' +
+             "ready to paste straight into the chat with me.</span>" +
+             '<b><button class="btn small" onclick="Plant.buildCopy()">' +
+             svgIcon("copy", 15) + "<span>Copy</span></button></b></div>" +
+         "</div>";
+
+    h += '<div class="callout warn"><strong>Keep a backup</strong>' +
+         "Everything here is saved on this device only. Make the report file now and then and " +
+         "email it to yourself, so a lost phone does not lose the lot.</div>";
+
+    h += '<div class="btn-row">' +
+           btn("", "home", "Back to the menu", "Plant.go('#/')") +
+           btn("", "eye", "See my example steps", "Plant.go('#/p/" + id + "-plant')") +
+         "</div>";
+
+    view.className = "view";
+    view.innerHTML = h;
+
+    /* keep what is typed */
+    var by = document.getElementById("buildBy");
+    var dt = document.getElementById("buildDate");
+    by.addEventListener("input", function () { buildDoc.by = by.value; saveBuild(); });
+    dt.addEventListener("input", function () { buildDoc.date = dt.value; saveBuild(); });
+
+    var fields = view.querySelectorAll("[data-step]");
+    for (var i = 0; i < fields.length; i++) {
+      fields[i].addEventListener("input", function (e) {
+        buildField(e.target.getAttribute("data-step"),
+                   e.target.getAttribute("data-k"), e.target.value);
+      });
+    }
+
+    if (focusStepId) {
+      var el = document.getElementById("bstep-" + focusStepId);
+      if (el) {
+        el.scrollIntoView({ block: "center" });
+        var ta = el.querySelector(".bstep-text");
+        if (ta) ta.focus();
+      }
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }
+
+  function viewPhoto(pid) {
+    var rec = photoCache[pid];
+    if (!rec) return;
+    var w = window.open("", "_blank");
+    if (!w) { alert("Your browser blocked the new tab."); return; }
+    w.document.write('<title>Step photo</title>' +
+      '<body style="margin:0;background:#111;display:grid;place-items:center;min-height:100vh">' +
+      '<img src="' + rec.full + '" style="max-width:100%;max-height:100vh">');
+    w.document.close();
+  }
+
+  /* ---------- sharing ---------- */
+
+  function buildText(doc, cfg) {
+    var out = [];
+    out.push(cfg.title.toUpperCase());
+    if (INFO.site) out.push("Site: " + INFO.site);
+    if (doc.by) out.push("Written by: " + doc.by);
+    if (doc.date) out.push("When: " + doc.date);
+    out.push("Steps: " + doc.steps.length + "   Photos: " + photoCount(doc));
+    out.push("");
+
+    doc.steps.forEach(function (s, i) {
+      out.push("STEP " + (i + 1));
+      out.push(String(s.text || "").trim() || "(nothing written yet)");
+      STEP_EXTRAS.forEach(function (f) {
+        if (String(s[f.k] || "").trim()) out.push("  " + f.label + ": " + String(s[f.k]).trim());
+      });
+      var n = (s.photos || []).length;
+      if (n) out.push("  Photos: " + n + " (file names step-" + pad2(i + 1) + "-1 onwards)");
+      out.push("");
+    });
+
+    return out.join("\n");
+  }
+
+  function pad2(n) { return (n < 10 ? "0" : "") + n; }
+
+  function buildCopy() {
+    var txt = buildText(buildDoc, BUILDERS[buildDoc.id]);
+    var done = function () { alert("Copied. Paste it into the chat with Kiro."); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(done, function () { fallbackCopy(txt, done); });
+    } else fallbackCopy(txt, done);
+  }
+
+  function fallbackCopy(txt, done) {
+    var ta = document.createElement("textarea");
+    ta.value = txt;
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); done(); }
+    catch (e) { alert("Copying did not work. Use Make report instead."); }
+    document.body.removeChild(ta);
+  }
+
+  function buildPhotos() {
+    var doc = buildDoc;
+    var jobs = [];
+    doc.steps.forEach(function (s, i) {
+      (s.photos || []).forEach(function (pid, j) {
+        jobs.push({ pid: pid, name: doc.id + "-step-" + pad2(i + 1) + "-" + (j + 1) + ".jpg" });
+      });
+    });
+    if (!jobs.length) { alert("No photos to save yet."); return; }
+    if (!confirm("Save " + jobs.length + " photo" + (jobs.length === 1 ? "" : "s") +
+                 " to your downloads?\n\nYour browser may ask you to allow several files.")) return;
+
+    var i = 0;
+    (function next() {
+      if (i >= jobs.length) return;
+      var job = jobs[i++];
+      var rec = photoCache[job.pid];
+      if (rec) saveDataUrl(job.name, rec.full);
+      setTimeout(next, 350);
+    })();
+  }
+
+  function saveDataUrl(name, dataUrl) {
+    try {
+      var parts = dataUrl.split(",");
+      var bin = atob(parts[1]);
+      var len = bin.length;
+      var buf = new Uint8Array(len);
+      for (var i = 0; i < len; i++) buf[i] = bin.charCodeAt(i);
+      var blob = new Blob([buf], { type: "image/jpeg" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url; a.download = name;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+    } catch (e) {}
+  }
+
+  function buildReport() {
+    var doc = buildDoc, cfg = BUILDERS[doc.id];
+    var esc2 = esc;
+
+    var h = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\">" +
+      '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+      "<title>" + esc2(cfg.title) + "</title><style>" +
+      "body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;" +
+      "max-width:820px;margin:0 auto;padding:28px 20px 60px;color:#16211c;line-height:1.55}" +
+      "h1{font-size:26px;margin:0 0 6px}" +
+      ".meta{color:#5a6b63;font-size:14px;margin:0 0 26px}" +
+      ".note{background:#fff6e6;border:1px solid #f0c27a;border-left:5px solid #b45309;" +
+      "padding:12px 16px;border-radius:8px;color:#7c4a02;font-size:14px;margin:0 0 26px}" +
+      ".step{border:1px solid #dfe5e1;border-radius:12px;padding:18px 20px;margin:0 0 16px;" +
+      "page-break-inside:avoid;break-inside:avoid}" +
+      ".no{display:inline-grid;place-items:center;min-width:28px;height:28px;padding:0 7px;" +
+      "background:#1f6f4a;color:#fff;border-radius:7px;font-weight:800;font-size:13px}" +
+      ".what{font-size:17px;font-weight:600;margin:12px 0 0;white-space:pre-wrap}" +
+      "dl{margin:14px 0 0;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px}" +
+      "dt{color:#5a6b63}dd{margin:0}" +
+      ".shots{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 0}" +
+      ".shots img{max-width:320px;width:100%;border:1px solid #dfe5e1;border-radius:8px}" +
+      "footer{margin-top:34px;color:#5a6b63;font-size:13px;border-top:1px solid #dfe5e1;padding-top:14px}" +
+      "@media print{.step{border-color:#999}body{padding:0}}" +
+      "</style></head><body>";
+
+    h += "<h1>" + esc2(cfg.title.replace(/^Build the real /, "")) + "</h1>";
+    h += '<p class="meta">' + esc2(INFO.name) +
+         (INFO.site ? " &middot; " + esc2(INFO.site) : "") + "<br>" +
+         (doc.by ? "Written by " + esc2(doc.by) + ". " : "") +
+         (doc.date ? esc2(doc.date) + ". " : "") +
+         doc.steps.length + " steps, " + photoCount(doc) + " photos. " +
+         "Saved " + new Date().toLocaleString() + ".</p>";
+
+    h += '<div class="note"><b>Not approved yet.</b> This is what was written and photographed ' +
+         "while walking the plant. It still has to be checked and signed off before anyone " +
+         "works to it.</div>";
+
+    doc.steps.forEach(function (s, i) {
+      h += '<div class="step"><span class="no">' + (i + 1) + "</span>";
+      h += '<p class="what">' + esc2(String(s.text || "").trim() || "(nothing written)") + "</p>";
+
+      var rows = STEP_EXTRAS.filter(function (f) { return String(s[f.k] || "").trim(); });
+      if (rows.length) {
+        h += "<dl>";
+        rows.forEach(function (f) {
+          h += "<dt>" + esc2(f.label) + "</dt><dd>" + esc2(String(s[f.k]).trim()) + "</dd>";
+        });
+        h += "</dl>";
+      }
+
+      var shots = (s.photos || []).map(function (p) { return photoCache[p]; })
+                                 .filter(Boolean);
+      if (shots.length) {
+        h += '<div class="shots">';
+        shots.forEach(function (r) { h += '<img src="' + r.full + '" alt="">'; });
+        h += "</div>";
+      }
+      h += "</div>";
+    });
+
+    h += "<footer>Made with the Plant Guide app. To turn this into a PDF, " +
+         "print this page and choose Save as PDF.</footer></body></html>";
+
+    saveTextFile(doc.id + "-procedure-" + stamp() + ".html", h, "text/html");
+  }
+
+  /* =============================================================
      SEARCH
      ============================================================= */
 
@@ -2093,6 +3187,16 @@ var Plant = (function () {
         kind: "fault", art: FAULT_ART[f.id] || "wrench",
         hash: "#/t/" + f.id, title: f.title, snip: f.symptom || "",
         text: text.join(" ").toLowerCase()
+      });
+    });
+
+    Object.keys(BUILDERS).forEach(function (k) {
+      var b = BUILDERS[k];
+      idx.push({
+        kind: "step builder", art: b.art,
+        hash: "#/build/" + k, title: b.title, snip: b.sub,
+        text: [b.title, b.sub, b.intro, "write build steps photos camera procedure"]
+                .join(" ").toLowerCase()
       });
     });
 
@@ -2215,6 +3319,7 @@ var Plant = (function () {
       if (sendOpen && sendOpen !== parts[1]) sendOpen = null;
       return renderInterview(parts[1]);
     }
+    if (parts[0] === "build" && parts[1]) return renderBuild(parts[1]);
     if (parts[0] === "settings") return renderSettings();
     if (parts[0] === "search") return renderSearch(decodeURIComponent(parts.slice(1).join("/") || ""));
     return renderNotFound();
@@ -2228,6 +3333,7 @@ var Plant = (function () {
 
   function init() {
     loadTheme();
+    loadDetail();
 
     var nameEl = document.getElementById("plantName");
     if (nameEl) nameEl.textContent = INFO.name;
@@ -2278,8 +3384,18 @@ var Plant = (function () {
     mapZoomBy: mapZoomBy,
     mapZoomFit: mapZoomFit,
     mapFull: mapFull,
+    setDetail: setDetail,
     addStep: addStep,
     removeStep: removeStep,
+    addStepAt: addStepAt,
+    moveStep: moveStep,
+    deleteStep: deleteStep,
+    addPhotos: addPhotos,
+    removePhoto: removePhoto,
+    viewPhoto: viewPhoto,
+    buildReport: buildReport,
+    buildPhotos: buildPhotos,
+    buildCopy: buildCopy,
     showSend: showSend,
     copySend: copySend,
     shareSend: shareSend,

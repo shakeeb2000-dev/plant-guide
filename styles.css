@@ -1352,3 +1352,167 @@ textarea.ans { resize: vertical; min-height: 56px; }
   .map-scroll { position: static; overflow: visible; padding: 0; }
   .flow { animation: none; }
 }
+
+/* =============================================================
+   23. SIMPLE / EVERY MACHINE SWITCH ON THE MAP
+   ============================================================= */
+
+.seg {
+  display: inline-flex;
+  border: var(--border-w) solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+[data-theme="industrial"] .seg { border-radius: 3px; }
+
+.seg-btn {
+  padding: 6px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-faint);
+  font-size: 12.5px; font-weight: 700;
+  cursor: pointer; white-space: nowrap;
+  transition: background .14s, color .14s;
+}
+.seg-btn:hover { color: var(--ink); }
+.seg-btn.on { background: var(--accent); color: var(--accent-ink); }
+[data-theme="industrial"] .seg-btn.on { background: #ffd400; color: #15130f; }
+
+.detail-hint {
+  font-size: 12px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+/* the bottom-left overlay now holds the switch, so let it breathe */
+.map-overlay.bl { gap: 10px; padding: 7px 10px; font-size: 12px; }
+
+@media (max-width: 720px) {
+  .map-overlay.bl {
+    display: flex;
+    bottom: auto; top: 58px; left: 10px; right: 10px;
+    justify-content: center;
+  }
+  .detail-hint { display: none; }
+  .map-overlay.tr { bottom: 10px; }
+  .map-scroll { padding: 108px 12px 66px; }
+}
+
+/* =============================================================
+   24. THE STEP BUILDER
+   ============================================================= */
+
+.bstep {
+  position: relative;
+  padding: 18px 20px;
+  margin: 0 0 14px;
+  border: var(--border-w) solid var(--line);
+  border-left: 5px solid var(--accent-line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.bstep-head {
+  display: flex; align-items: center; gap: 12px;
+  margin: 0 0 14px;
+  flex-wrap: wrap;
+}
+.bstep-tools { display: flex; align-items: center; gap: 7px; margin-left: auto; flex-wrap: wrap; }
+.bstep-tools .icon-btn { width: 34px; height: 34px; }
+.bstep-tools .icon-btn[disabled] { opacity: .35; cursor: not-allowed; }
+.bstep-tools .icon-btn.danger { color: var(--red); border-color: var(--red-line); }
+.bstep-tools .icon-btn.danger:hover { background: var(--red-soft); color: var(--red); }
+
+.bstep-text { font-size: 16.5px; }
+
+/* ---- photos ---- */
+
+.bphotos {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  margin: 14px 0 0;
+}
+
+.bphoto {
+  position: relative;
+  width: 104px; height: 104px;
+  border: var(--border-w) solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--bg);
+  flex: 0 0 auto;
+}
+.bphoto img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block; cursor: zoom-in;
+}
+.bphoto-missing {
+  width: 100%; height: 100%;
+  display: grid; place-items: center;
+  font-size: 11px; color: var(--ink-faint);
+}
+.bphoto-x {
+  position: absolute; top: 4px; right: 4px;
+  width: 26px; height: 26px;
+  display: grid; place-items: center;
+  border: 0; border-radius: 50%;
+  background: rgba(0, 0, 0, .66);
+  color: #fff; font-size: 17px; line-height: 1;
+  cursor: pointer;
+}
+.bphoto-x:hover { background: var(--red); }
+
+.bphoto-add {
+  width: 104px; height: 104px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 7px;
+  border: var(--border-w) dashed var(--line);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 12.5px; font-weight: 700;
+  cursor: pointer; flex: 0 0 auto;
+  transition: border-color .14s, color .14s, background .14s;
+}
+.bphoto-add:hover {
+  border-color: var(--accent-line);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.bphoto-add input { display: none; }
+
+/* ---- the folded-away extra fields ---- */
+
+.bextras { margin: 14px 0 0; }
+.bextras > summary {
+  cursor: pointer;
+  font-size: 12.5px; font-weight: 800;
+  letter-spacing: var(--label-tracking); text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 8px 0;
+  list-style: none;
+}
+.bextras > summary::-webkit-details-marker { display: none; }
+.bextras > summary::before { content: "+ "; }
+.bextras[open] > summary::before { content: "\2212 "; }
+.bextras > summary:hover { color: var(--ink); }
+.bextras[open] { border-top: 1px solid var(--line); }
+
+/* the three sharing rows read better with room to breathe */
+.card .kv > span { max-width: 52ch; }
+.card .kv > b { align-self: center; }
+
+@media (max-width: 720px) {
+  .bstep { padding: 16px 14px; }
+  .bstep-tools { width: 100%; margin-left: 0; }
+  .bstep-tools .btn.small span { display: none; }
+  .bphoto, .bphoto-add { width: 88px; height: 88px; }
+}
+
+@media print {
+  .bstep-tools, .bphoto-add, .bphoto-x, .bextras > summary { display: none !important; }
+  .bphoto, .bphoto-add { width: 150px; height: 150px; }
+  .bextras { display: block; }
+}

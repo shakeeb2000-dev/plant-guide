@@ -119,3 +119,53 @@ orange "needs sign-off" badge turns green.
 - A quick link to the right fault page from a QR code stuck on the machine.
 - Live readings from the control system, instead of the typed-in "what normal
   looks like" numbers.
+
+## Writing the real procedure, on the job
+
+Menu → **Write the real procedure** → Startup or Shutdown.
+
+This is for walking the plant with your boss. Add a step, write what he says, take photos
+of whatever he points at. Then add the next one. If you realise later that something was
+missed, use **Insert above** on any step and a new blank one slots in between.
+
+Each step holds:
+
+- what you do, in his words
+- as many photos as you like
+- optionally: how you know it worked, what is dangerous, who does it, how long
+
+Everything saves on the device the moment you type it, and photos are shrunk on the way
+in so the whole thing stays small.
+
+### Getting it back off the phone
+
+Three buttons at the bottom of the page:
+
+| Button | What you get | Best for |
+|---|---|---|
+| **Make report** | One HTML file with every step and every photo in it | Your boss. Open it and print to PDF. |
+| **Save the photos** | Each photo as its own file, already shrunk | Sending the photos back to Kiro |
+| **Copy the words** | All the writing as plain text | Pasting straight into the chat |
+
+The photos come out at about 1200 pixels on the long side, which is small enough to send
+without jamming the chat and still clear enough to read a gauge.
+
+> **Back it up.** Everything lives on that one device. Make the report file now and then
+> and email it to yourself.
+
+## Reading the plant map
+
+The map has a **Simple / Every machine** switch in the bottom corner.
+
+**Simple** is the default. It does what your control room screens do: a run of conveyors
+becomes a labelled arrow rather than a row of boxes. Plant 1 Receival goes from 17 boxes
+down to 4 shapes, with the conveyor numbers written on the arrows. Dashed blocks at the
+edges show where the product carries on into the next area, and tapping one takes you
+there.
+
+**Every machine** shows the lot, including every screw and valve, for when you need the
+tag number of something specific.
+
+Machines are drawn as their own shapes — a tank is a cylinder, a dryer is a drum, a pump
+is a circle, a conveyor is a bar — and vessels with a level show it as a bar, the same way
+your screens do.
