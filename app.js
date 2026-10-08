@@ -99,11 +99,11 @@ var Plant = (function () {
 
   var STREAM_COLORS = {
     control: {
-      raw: "#2ce08c", meal: "#9bd84f", tallow: "#ffb74d",
+      raw: "#2ce08c", meal: "#9bd84f", tallow: "#ffb74d", blood: "#ff7a95",
       water: "#4fc3f7", vapour: "#b794f6", steam: "#ff6b60"
     },
     industrial: {
-      raw: "#0b7a3f", meal: "#3f6212", tallow: "#a35a00",
+      raw: "#0b7a3f", meal: "#3f6212", tallow: "#a35a00", blood: "#9f1239",
       water: "#11399e", vapour: "#5b2bb8", steam: "#b3160f"
     }
   };
@@ -170,6 +170,7 @@ var Plant = (function () {
     "line-mbm":           "mill",
     "line-tallow":        "tank",
     "support-changeover": "refresh",
+    "support-loadout":    "bagging",
     "support-odour":      "fan"
   };
 
@@ -775,7 +776,7 @@ var Plant = (function () {
 
   /* ---------- layout engine ---------- */
 
-  function layoutGraph(nodes, edges, W, H, gapX, gapY, maxCols) {
+  function layoutGraph(nodes, edges, W, H, gapX, gapY, maxCols, maxRows) {
     var idMap = {}, depth = {}, row = {};
     nodes = nodes || [];
     nodes.forEach(function (n) { idMap[n.id] = n; depth[n.id] = 0; });
@@ -819,25 +820,38 @@ var Plant = (function () {
       list.forEach(function (n, i) { row[n.id] = i; });
     });
 
-    var totalCols = keys.length || 1;
+    /* A column with a lot of machines in it (think ten dosing pumps all
+       feeding one DAF) would otherwise make one very tall thin strip.
+       So a tall column gets broken into side-by-side sub-columns. The
+       process order, left to right, is kept either way. */
+    var tallest = 1;
+    keys.forEach(function (k) { tallest = Math.max(tallest, cols[k].length); });
+
+    var rowCap = Math.max(1, maxRows || tallest);
+    var slots = [];
+    keys.forEach(function (k) {
+      var list = cols[k];
+      for (var i = 0; i < list.length; i += rowCap) slots.push(list.slice(i, i + rowCap));
+    });
+
+    var totalCols = slots.length || 1;
     var mc = Math.max(1, Math.min(maxCols || totalCols, totalCols));
 
     var bands = [];
-    for (var c = 0; c < totalCols; c += mc) bands.push(keys.slice(c, c + mc));
+    for (var c = 0; c < totalCols; c += mc) bands.push(slots.slice(c, c + mc));
 
     var padX = 34, padY = 30;
     var bandGap = gapY + 34;
     var y = padY, bottom = padY;
     var pos = {}, bandOf = {};
 
-    bands.forEach(function (bandKeys, bi) {
-      var maxRows = 1;
-      bandKeys.forEach(function (k) { maxRows = Math.max(maxRows, cols[k].length); });
-      var bandH = maxRows * H + (maxRows - 1) * gapY;
+    bands.forEach(function (bandSlots, bi) {
+      var rows = 1;
+      bandSlots.forEach(function (s) { rows = Math.max(rows, s.length); });
+      var bandH = rows * H + (rows - 1) * gapY;
       var ltr = (bi % 2 === 0);
 
-      bandKeys.forEach(function (k, j) {
-        var list = cols[k];
+      bandSlots.forEach(function (list, j) {
         var slot = ltr ? j : (mc - 1 - j);
         var cx = padX + slot * (W + gapX) + W / 2;
         var colH = list.length * H + (list.length - 1) * gapY;
@@ -859,20 +873,39 @@ var Plant = (function () {
       width: padX * 2 + used * W + (used - 1) * gapX,
       height: bottom + padY,
       totalCols: totalCols,
+      tallest: tallest,
       bands: bands.length
     };
   }
 
-  /* try every fold width and keep the one that fills the stage best */
+  /* Try every fold width and every column height, and keep whichever
+     combination fills the stage biggest. This is what means you should
+     never have to zoom. */
   function fitLayout(nodes, edges, W, H, gapX, gapY, stageW, stageH, maxScale) {
-    var probe = layoutGraph(nodes, edges, W, H, gapX, gapY, 9999);
-    var cap = Math.max(1, Math.min(probe.totalCols, 28));
+    var probe = layoutGraph(nodes, edges, W, H, gapX, gapY, 9999, 9999);
+    var rowCap = Math.max(1, Math.min(probe.tallest, 9));
     var best = null;
-    for (var mc = cap; mc >= 1; mc--) {
-      var L = layoutGraph(nodes, edges, W, H, gapX, gapY, mc);
-      var s = Math.min(stageW / L.width, stageH / L.height);
-      if (s > maxScale) s = maxScale;
-      if (!best || s > best.scale + 0.004) best = { L: L, scale: s, mc: mc };
+
+    /* Work from least-split to most-split, and only accept more
+       splitting if it buys a real improvement. Machines that run in
+       parallel then stay stacked in one column, which is far easier
+       to follow than having them broken up side by side. */
+    for (var mr = rowCap; mr >= 1; mr--) {
+      var wide = layoutGraph(nodes, edges, W, H, gapX, gapY, 9999, mr);
+      var colCap = Math.max(1, Math.min(wide.totalCols, 30));
+      for (var mc = colCap; mc >= 1; mc--) {
+        var L = layoutGraph(nodes, edges, W, H, gapX, gapY, mc, mr);
+        var s = Math.min(stageW / L.width, stageH / L.height);
+        if (s > maxScale) s = maxScale;
+
+        if (!best) { best = { L: L, scale: s, mc: mc, mr: mr }; continue; }
+
+        /* same amount of splitting: take any gain.
+           more splitting than the best so far: it has to earn it. */
+        var sameSplit = (mr === best.mr);
+        var needed = sameSplit ? best.scale + 0.004 : best.scale * 1.12;
+        if (s > needed) best = { L: L, scale: s, mc: mc, mr: mr };
+      }
     }
     return best;
   }

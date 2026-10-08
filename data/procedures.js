@@ -523,11 +523,12 @@ window.PLANT_PROCEDURES = [
     status: "draft",
     duration: "45 to 90 minutes",
     who: "Supervisor signs off every changeover",
-    summary: "How to switch the plant from one species to another without cross-contaminating. This page protects your customer approvals, so it must be followed exactly and signed.",
+    summary: "How to switch the plant from one species to another without cross-contaminating. This page protects your customer approvals, so it must be followed exactly and signed. On this plant the segregation is done by BIN: Bin 1 is BOVINE, Bin 2 is OVINE, Bin 3 is BUFFER, Bin 4 is CHICKEN, Bins 5 and 6 are WOOL. The dryer outfeed page shows which bin and which line each dryer is feeding, and the species it is running.",
     ppe: ["Hard hat", "Safety glasses", "Hearing protection", "Steel cap boots", "Gloves", "Hi-vis"],
     warnings: [
       { type: "danger", title: "Lock out before cleaning inside anything", text: "Every machine opened for inspection or cleaning must be isolated, locked, tagged and proven dead." },
-      { type: "warn", title: "No sign-off, no changeover", text: "The new run does not start until the supervisor has inspected and signed the changeover record." }
+      { type: "warn", title: "No sign-off, no changeover", text: "The new run does not start until the supervisor has inspected and signed the changeover record." },
+      { type: "warn", title: "One conveyor run serves every dryer", text: "M267 and the reversible M266 carry Line 1, Line 2 and the blood meal. Whatever species ran last is still in there, so that run has to be clear before the next species goes through it." }
     ],
     steps: [
       {
@@ -562,7 +563,21 @@ window.PLANT_PROCEDURES = [
         checks: ["Flush quantity agreed", "Flush material sent to the correct destination", "Flush recorded"]
       },
       {
-        title: "Change over the labels, bins and paperwork",
+        title: "Switch the dryer outfeed to the right bin",
+        detail: "This is the step that actually keeps the species apart. On the dryer outfeed page, set each running dryer to feed the bin for the new species: Bin 1 BOVINE, Bin 2 OVINE, Bin 3 BUFFER, Bin 4 CHICKEN, Bins 5 and 6 WOOL. Check the line as well as the bin — Line 1 and Line 2 are separate.",
+        who: "Operator",
+        time: "5 min",
+        warning: "If a dryer is still pointed at the old bin, the new species goes into the wrong bin and both bins are then suspect. Read the bin number and the species back off the screen before you start feeding.",
+        checks: [
+          "Correct bin selected for every running dryer",
+          "Line 1 and Line 2 both checked",
+          "The species shown on the dryer outfeed page matches what you are actually running",
+          "Previous species fully out of the shared conveyor run before the change",
+          "Bin levels noted before and after"
+        ]
+      },
+      {
+        title: "Change over the labels, bin signs and paperwork",
         detail: "Swap the bin signs, bag labels, run sheets and sampling labels to the new species before the first product is made.",
         who: "Operator",
         checks: ["Bin and tank signs changed", "Old labels removed from the area", "New run sheet started", "Correct recipe selected"]
@@ -577,7 +592,110 @@ window.PLANT_PROCEDURES = [
   },
 
   /* ===========================================================
-     8. SUPPORT — ODOUR CONTROL
+     8. SUPPORT — CONTAINER LOAD-OUT
+     Taken from the checklist built into your LOAD-OUT screen.
+     =========================================================== */
+  {
+    id: "support-loadout",
+    category: "support",
+    icon: "\u{1F4E6}",
+    title: "Container Load-Out",
+    subtitle: "Emptying a silo into a shipping container",
+    status: "draft",
+    duration: "About 60 to 90 minutes a container",
+    who: "Load-Out Operator, supervisor signs the container off",
+    summary: "How MBM goes from a silo into a shipping container. The eight checks below are the ones already built into your LOAD-OUT screen, so this page should be very close to what you already do. Read the wording off the screen and correct mine where it differs.",
+    ppe: ["Hard hat", "Safety glasses", "Hearing protection", "Dust mask", "Steel cap boots", "Gloves", "Hi-vis"],
+    warnings: [
+      { type: "danger", title: "Never enter a container that is being loaded", text: "Meal comes in fast and buries anything in the way. Inspect it empty, get out, then load." },
+      { type: "danger", title: "Forklifts and trucks moving", text: "Agree where the forklift works and where people walk before loading starts. Stay out of the truck's blind spots." },
+      { type: "warn", title: "A rejected container is cheaper than a rejected load", text: "If the container fails any of the checks, reject it. Do not load into a container you are not happy with." }
+    ],
+    steps: [
+      {
+        title: "Check the silo and the product before anything else",
+        detail: "Confirm which silo you are emptying and what is actually in it. Only MBM is stored in the silos, so if the screen says something else, stop and ask.",
+        who: "Operator",
+        time: "5 min",
+        warning: "The screens still carry some old species labels. Trust the run records, not just the word on the screen.",
+        checks: ["Correct silo selected on the screen", "Product in that silo confirmed against the run records", "Silo level enough for the load", "Tonnes required for this container known"]
+      },
+      {
+        title: "Check the correct container has been selected",
+        detail: "Match the container on the screen to the container actually backed up to the loading point. Check the container number on the box against your paperwork.",
+        who: "Operator",
+        time: "5 min",
+        checks: ["Container number on the box matches the paperwork", "Correct container selected on the screen", "Truck parked and brakes applied", "Driver out of the cab and clear"]
+      },
+      {
+        title: "Check the correct seal has been provided",
+        detail: "The seal number has to match the paperwork before you start, not after.",
+        who: "Operator",
+        checks: ["Seal supplied", "Seal number recorded against this container", "Seal number matches the paperwork"]
+      },
+      {
+        title: "Check the container for damage",
+        detail: "Walk around it. Look at the roof, the walls, the door seals and the corners. If it is damaged, it gets rejected.",
+        who: "Operator",
+        warning: "A damaged container means water gets in and the whole load is ruined. Reject it.",
+        checks: ["No holes, splits or rust-through", "Roof sound", "Door seals good", "No previous repairs that look suspect"]
+      },
+      {
+        title: "Check the floor",
+        detail: "The floor has to be sound and clean. If it is not, the container gets rejected.",
+        who: "Operator",
+        checks: ["Floor sound, no soft or broken boards", "Floor clean and dry", "No oil, chemical or strong smell"]
+      },
+      {
+        title: "Inspect for foreign bodies and clear them out",
+        detail: "Look for anything left behind from the last load: dunnage, nails, bags, liner, strapping, bits of timber. Remove it all, then look again.",
+        who: "Operator",
+        warning: "Anything left in the container ends up in your customer's product and comes back as a complaint.",
+        checks: ["All foreign bodies removed", "Container inspected a second time after clearing", "Anything found written down"]
+      },
+      {
+        title: "Sweep it out",
+        detail: "The container must be swept clean before any product goes in.",
+        who: "Operator",
+        checks: ["Swept out", "No residue from the previous load", "Sweepings disposed of, not left in the doorway"]
+      },
+      {
+        title: "Label the container",
+        detail: "The container has to be labelled with the product and the silo it came from before it leaves.",
+        who: "Operator",
+        checks: ["Label shows the product", "Label shows the silo", "Label shows the date and batch", "Label fixed where it will not come off"]
+      },
+      {
+        title: "Start the silo outfeed and watch it",
+        detail: "Start the outfeed from the screen. Stay with it. Watch the tonnes climbing and the fill in the container.",
+        who: "Operator",
+        time: "30-60 min",
+        checks: ["Outfeed started from the screen", "Tonnes counting up as expected", "No spillage at the loading point", "Dust under control", "Nobody near or inside the container"]
+      },
+      {
+        title: "Stop at the target weight",
+        detail: "Stop on the tonnes the paperwork calls for. There is an Auto Stop and a Quick Stop on the screen — know which one you are using and why.",
+        who: "Operator",
+        checks: ["Stopped at the target tonnes", "Final weight recorded", "Conveyors run empty before stopping"]
+      },
+      {
+        title: "Seal it, record it and release it",
+        detail: "Close the doors, fit the seal, write the seal number down, and get the supervisor to sign the container off.",
+        who: "Operator + Supervisor",
+        time: "10 min",
+        checks: ["Doors closed properly", "Seal fitted", "Seal number recorded on the paperwork", "Final weight and silo recorded", "Supervisor signed the container off", "Driver given the paperwork"]
+      },
+      {
+        title: "Clean up the loading point",
+        detail: "Sweep or hose the spill area, clear the walkways, and leave it ready for the next container.",
+        who: "Operator",
+        checks: ["Spill area clean", "Walkways clear", "Loading point left tidy", "Log filled in"]
+      }
+    ]
+  },
+
+  /* ===========================================================
+     9. SUPPORT — ODOUR CONTROL
      =========================================================== */
   {
     id: "support-odour",

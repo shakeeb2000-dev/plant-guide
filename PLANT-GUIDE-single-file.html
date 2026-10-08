@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Plant Guide">
 <title>Plant Guide — Startup, Shutdown, Lines &amp; Troubleshooting</title>
-<!-- Single-file copy. Built by build-one-file.js on 2026-10-07. Edit the folder, not this file. -->
+<!-- Single-file copy. Built by build-one-file.js on 2026-10-08. Edit the folder, not this file. -->
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPHRpdGxlPlBsYW50IEd1aWRlPC90aXRsZT4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0iIzBkMTcxNCIvPgogIDxyZWN0IHg9IjQwIiB5PSI0MCIgd2lkdGg9IjQzMiIgaGVpZ2h0PSI0MzIiIHJ4PSI3MiIgZmlsbD0iIzEyMjAxYiIvPgogIDxnIHN0cm9rZT0iIzFjMzQyYyIgc3Ryb2tlLXdpZHRoPSIxLjYiPgogICAgPHBhdGggZD0iTTEyOCA3MlY0NDBNMTc2IDcyVjQ0ME0yMjQgNzJWNDQwTTI3MiA3MlY0NDBNMzIwIDcyVjQ0ME0zNjggNzJWNDQwTTQxNiA3MlY0NDAiLz4KICAgIDxwYXRoIGQ9Ik03MiAxMjhINDQwTTcyIDE3Nkg0NDBNNzIgMjI0SDQ0ME03MiAyNzJINDQwTTcyIDMyMEg0NDBNNzIgMzY4SDQ0ME03MiA0MTZINDQwIi8+CiAgPC9nPgogIDxnIGZpbGw9IiMyY2UwOGMiPgogICAgPHJlY3QgeD0iOTYiICB5PSIzNzgiIHdpZHRoPSIzMjAiIGhlaWdodD0iMjIiIHJ4PSIxMCIvPgogICAgPHJlY3QgeD0iMTA0IiB5PSIyODgiIHdpZHRoPSI1OCIgIGhlaWdodD0iOTQiICByeD0iMTQiLz4KICAgIDxyZWN0IHg9IjE4MCIgeT0iMjQ4IiB3aWR0aD0iNTgiICBoZWlnaHQ9IjEzNCIgcng9IjE0Ii8+CiAgICA8cmVjdCB4PSIyNTYiIHk9IjIwOCIgd2lkdGg9IjU4IiAgaGVpZ2h0PSIxNzQiIHJ4PSIxNCIvPgogICAgPHJlY3QgeD0iMzMyIiB5PSIyNzIiIHdpZHRoPSI1OCIgIGhlaWdodD0iMTEwIiByeD0iMTQiLz4KICAgIDxyZWN0IHg9IjI3MiIgeT0iMTI4IiB3aWR0aD0iMzAiICBoZWlnaHQ9Ijg0IiAgcng9IjgiLz4KICA8L2c+CiAgPGNpcmNsZSBjeD0iMzQ4IiBjeT0iMTcwIiByPSIyNiIgZmlsbD0iI2ZmYjc0ZCIvPgo8L3N2Zz4K" type="image/svg+xml">
 <style>
 /* =============================================================
@@ -1451,9 +1451,9 @@ textarea.ans { resize: vertical; min-height: 56px; }
 /* The version that is actually installed on this device.
    Bump it with:  node tools/bump-version.js  (keeps version.json and sw.js in step) */
 window.PLANT_VERSION = {
-  version: "6",
-  built: "2026-10-07",
-  notes: "New look. Two complete themes (Control Room and Bold Industrial) and a plant map that fills the screen instead of making you zoom."
+  version: "12",
+  built: "2026-10-08",
+  notes: "Only MBM goes to the silos; ovine and bovine go straight to bagging. Chicken retired. New Container Load-Out procedure from the load-out screen checklist."
 };
 </script>
 
@@ -1770,6 +1770,7 @@ window.PLANT_MAP = {
     raw:    { label: "Raw material",      color: "#1f6f4a" },
     meal:   { label: "Meal",              color: "#166534" },
     tallow: { label: "Tallow / liquid",   color: "#b45309" },
+    blood:  { label: "Blood",             color: "#9f1239" },
     water:  { label: "Water / effluent",  color: "#1d4ed8" },
     vapour: { label: "Vapour / air",      color: "#7c3aed" },
     steam:  { label: "Steam",             color: "#b3261e" }
@@ -1852,9 +1853,6 @@ window.PLANT_MAP = {
           note: "Ovine only. Jacket steam, shaft steam and live steam valves.",
           values: [{ k: "Steam", v: "Jacket, shaft and live" }] },
         { id: "c1-outpump", label: "Cooker 1 Outfeed Pump", type: "pump" },
-        { id: "m169", tag: "M169", label: "Buffer Tank", type: "tank", guess: true,
-          note: "M numbers are motors, so M169 is probably the pump or stirrer on a small tank " +
-                "that sits before the decanter feed. Confirm what it drives." },
         { id: "dec1-feed", label: "Decanter Infeed Feed Pump", type: "pump",
           values: [{ k: "Feed speed", v: "shown in RPM on the screen" }] },
         { id: "dec1", tag: "PLANT 1", label: "Plant 1 Decanter", type: "decanter",
@@ -1863,26 +1861,27 @@ window.PLANT_MAP = {
             { k: "Scroll", v: "2442 RPM" },
             { k: "Torque", v: "42 \u2013 45 bar" },
             { k: "Temperature", v: "48.2 \u00B0C" }
-          ] },
-        { id: "m174", tag: "M174", label: "Decanter Outfeed Screw", type: "screw" },
-        { id: "ovine-screw", tag: "M190 \u2013 M193", label: "Ovine Vertical Screw", type: "screw" },
-        { id: "p175", tag: "P175", label: "Liquid Pump", type: "pump" },
-        { id: "m176", tag: "M176", label: "Vibrating Screen", type: "shaker" },
-        { id: "wv177", tag: "WV177", label: "Transfer Valve", type: "valve",
-          note: "Has a high level switch (177 HL)." },
-        { id: "p177", tag: "P177", label: "Tallow Transfer Pump", type: "pump" }
+          ],
+          note: "The same machine appears on the Liquid Phase screen labelled as the Plant 1 " +
+                "Gtech decanter. These readings came off the cooker screen; the liquid side of " +
+                "it is drawn in the Liquid Phase area." },
+        { id: "m174", tag: "M174", label: "Decanter Outfeed Screw", type: "screw",
+          note: "Read off the cooker screen. The Liquid Phase screen shows the Plant 1 outfeed " +
+                "screws as M178 and M179, so either M174 is a third screw or one of my " +
+                "readings is wrong. Worth a look." },
+        { id: "ovine-screw", tag: "M190 \u2013 M193", label: "Ovine Vertical Screw", type: "screw",
+          guess: true,
+          note: "I read these numbers off a blurry photo. The Dryer Infeed screen shows the " +
+                "Line 1 conveyors as M180, M181 and M182, so M190 to M193 may well be wrong. " +
+                "Please check what is painted on this screw. Whatever its number, it hands " +
+                "over to M180 in the Dryer Infeed area." },
       ],
       edges: [
         { from: "cooker1", to: "c1-outpump", stream: "raw", label: "cooked" },
-        { from: "c1-outpump", to: "m169", stream: "raw" },
-        { from: "m169", to: "dec1-feed", stream: "raw" },
+        { from: "c1-outpump", to: "dec1-feed", stream: "raw" },
         { from: "dec1-feed", to: "dec1", stream: "raw" },
         { from: "dec1", to: "m174", stream: "meal", label: "solids" },
-        { from: "m174", to: "ovine-screw", stream: "meal" },
-        { from: "dec1", to: "p175", stream: "tallow", label: "liquid" },
-        { from: "p175", to: "m176", stream: "tallow" },
-        { from: "m176", to: "wv177", stream: "tallow" },
-        { from: "wv177", to: "p177", stream: "tallow" }
+        { from: "m174", to: "ovine-screw", stream: "meal" }
       ]
     },
 
@@ -1957,8 +1956,9 @@ window.PLANT_MAP = {
             { k: "Drive", v: "46 Hz" }
           ] },
         { id: "m258", tag: "M258 / M259", label: "Cooker 2 Drives", type: "screw", guess: true,
-          note: "M258 and M259 also show up on my Dryer Infeed page. One of the two is wrong \u2014 " +
-                "check where these motors really are." },
+          note: "I had these two numbers on the Dryer Infeed page as well. The Blood Plant " +
+                "screen showed the dryer feed motors are in the M266 to M293 range, so I have " +
+                "settled M258 and M259 here on Cooker 2. Still worth a quick check." },
         { id: "tsp", tag: "M262", label: "Twin Screw Press", type: "press",
           values: [
             { k: "Drive", v: "45 Hz" },
@@ -1966,7 +1966,9 @@ window.PLANT_MAP = {
             { k: "Load", v: "44 %" }
           ] },
         { id: "m263", tag: "M263", label: "Meal Infeed Screw", type: "screw" },
-        { id: "m264", tag: "M264", label: "Meal Outfeed Screw", type: "screw" },
+        { id: "m264", tag: "M264", label: "Meal Outfeed Screw", type: "screw",
+          note: "Confirmed on the Dryer Infeed screen: this is the long conveyor that carries " +
+                "Plant 2 press cake all the way across to the dryer infeed as \u201CLine 2\u201D." },
         { id: "p261", tag: "P261", label: "Liquid Pump", type: "pump" },
         { id: "p262", tag: "P262", label: "Liquid Pump", type: "pump" }
       ],
@@ -1986,28 +1988,90 @@ window.PLANT_MAP = {
       title: "Dryer Infeed",
       plant: "shared",
       icon: "screw",
-      summary: "The routing area. Both plants feed in here and the operator picks which " +
-               "dryers to use \u2014 Line 1 can take Dryer 1 or 2, Line 2 can take Dryer 1, 2 or 3, " +
-               "or two at once.",
-      note: "The screen was showing \u201CDryer 2 & 3 Selected\u201D. The dryers are a shared pool, " +
-            "not fixed to a plant.",
+      summary: "The junction of the whole plant. Line 1 comes in on M180, Line 2 comes in " +
+               "on M264, and the blood plant comes in on BLM108. All three land on M267, " +
+               "which drops through V266 onto the reversible M266 conveyor. M266 running " +
+               "forward or in reverse is what decides which dryer gets fed.",
+      note: "Read off the Dryer_InfeedControl screen on 7 Oct 2026. It has its own Auto Start " +
+            "and Auto Stop, and was reading \u201CDRYER INFEED RUNNING\u201D. Two valve alarms " +
+            "were up at the time: \u201CV182 Fail To Open\u201D and \u201CV265 Fail To Close\u201D, " +
+            "plus \u201CV266 Fail To Close\u201D. Worth finding out whether those three sit there " +
+            "all the time or were real.",
       to: ["dryers"],
       nodes: [
-        { id: "di-m253", tag: "M253", label: "Outfeed Screw", type: "screw" },
-        { id: "di-m254", tag: "M254", label: "Vertical Screw", type: "screw" },
-        { id: "di-m256", tag: "M256", label: "Distribution Screw", type: "screw", guess: true },
-        { id: "di-m258", tag: "M258", label: "Dryer 1 Infeed Screw", type: "screw", guess: true,
-          note: "M258 also shows up on my Plant 2 Cooker page. One of the two is wrong." },
-        { id: "di-m259", tag: "M259", label: "Dryer 2 Infeed Screw", type: "screw", guess: true,
-          note: "M259 also shows up on my Plant 2 Cooker page. One of the two is wrong." },
-        { id: "di-m260", tag: "M260", label: "Dryer 3 Infeed Screw", type: "screw", guess: true }
+        /* ---- how the operator picks the dryers ---- */
+        { id: "di-select", label: "Dryer Selection", type: "valve",
+          values: [
+            { k: "Line 1 can pick", v: "Dryer 1 or Dryer 2" },
+            { k: "Line 2 can pick", v: "Dryer 1, 2 or 3, or a pair" },
+            { k: "Line 2 pairs", v: "1 and 2, 1 and 3, or 2 and 3" },
+            { k: "Set when photographed", v: "Line 1 \u2192 Dryer 1. Line 2 \u2192 Dryer 2 and 3." }
+          ],
+          note: "Not a machine \u2014 this is the block of buttons at the top of the screen. " +
+                "Note that Line 1 can only ever take ONE dryer, while Line 2 can take two at " +
+                "once. Worth asking why." },
+
+        /* ---- Line 1 in ---- */
+        { id: "di-m180", tag: "M180", label: "Line 1 Meal Conveyor", type: "screw",
+          note: "The long conveyor bringing ovine meal across from Plant 1." },
+        { id: "di-m181", tag: "M181", label: "Line 1 Meal Conveyor", type: "screw" },
+        { id: "di-m182", tag: "M182", label: "Line 1 Meal Conveyor", type: "screw" },
+        { id: "di-v182", tag: "V182", label: "Line 1 Diverter Valve", type: "valve",
+          alarms: ["V182 Fail To Open"],
+          note: "This alarm was showing when you took the photo." },
+
+        /* ---- Line 2 in ---- */
+        { id: "di-m264", tag: "M264", label: "Line 2 Meal Conveyor", type: "screw",
+          note: "The long conveyor bringing press cake across from the Plant 2 Twin Screw " +
+                "Press. On the screen the arrows run right to left." },
+        { id: "di-m265", tag: "M265", label: "Line 2 Meal Conveyor", type: "screw",
+          note: "I had this one down as a Dryer 1 outfeed screw before. It is not \u2014 it is " +
+                "on the infeed side." },
+        { id: "di-v265", tag: "V265", label: "Line 2 Diverter Valve", type: "valve",
+          alarms: ["V265 Fail To Close"] },
+
+        /* ---- the common run ---- */
+        { id: "di-m267", tag: "M267", label: "Collecting Conveyor", type: "screw",
+          note: "Everything meets here: Line 1, Line 2 and the blood meal off BLM108. If this " +
+                "one stops, nothing gets to any dryer." },
+        { id: "di-v266", tag: "V266", label: "Drop Valve", type: "valve",
+          alarms: ["V266 Fail To Close"] },
+        { id: "di-m266", tag: "M266F / M266R", label: "Reversible Distribution Conveyor",
+          type: "screw",
+          values: [
+            { k: "M266F", v: "runs forward" },
+            { k: "M266R", v: "runs in reverse" }
+          ],
+          note: "This is the machine that chooses the dryer. Forward sends the meal one way " +
+                "along the run, reverse sends it the other." },
+
+        /* ---- into each dryer ---- */
+        { id: "di-m268", tag: "M268", label: "Dryer 1 Feed Conveyor", type: "screw" },
+        { id: "di-m269", tag: "M269", label: "Dryer 1 Infeed Conveyor", type: "screw" },
+        { id: "di-m283", tag: "M283", label: "Dryer 2 Infeed Conveyor", type: "screw",
+          values: [{ k: "Dryer 2 infeed time", v: "444 (units not shown)" }],
+          note: "The screen shows an infeed time against this one. Probably seconds, but ask." },
+        { id: "di-m293", tag: "M293", label: "Dryer 3 Infeed Conveyor", type: "screw" }
       ],
       edges: [
-        { from: "di-m253", to: "di-m254", stream: "meal" },
-        { from: "di-m254", to: "di-m256", stream: "meal" },
-        { from: "di-m256", to: "di-m258", stream: "meal" },
-        { from: "di-m256", to: "di-m259", stream: "meal" },
-        { from: "di-m256", to: "di-m260", stream: "meal" }
+        { from: "di-m180", to: "di-m181", stream: "meal" },
+        { from: "di-m181", to: "di-m182", stream: "meal" },
+        { from: "di-m182", to: "di-v182", stream: "meal" },
+        { from: "di-v182", to: "di-m267", stream: "meal", label: "Line 1" },
+
+        { from: "di-m264", to: "di-m265", stream: "meal" },
+        { from: "di-m265", to: "di-v265", stream: "meal" },
+        { from: "di-v265", to: "di-m267", stream: "meal", label: "Line 2" },
+
+        { from: "di-m267", to: "di-v266", stream: "meal" },
+        { from: "di-v266", to: "di-m266", stream: "meal" },
+
+        { from: "di-select", to: "di-m266", stream: "meal", dashed: true, label: "picks the dryer" },
+
+        { from: "di-m266", to: "di-m268", stream: "meal" },
+        { from: "di-m268", to: "di-m269", stream: "meal" },
+        { from: "di-m266", to: "di-m283", stream: "meal" },
+        { from: "di-m266", to: "di-m293", stream: "meal" }
       ]
     },
 
@@ -2017,31 +2081,53 @@ window.PLANT_MAP = {
       title: "Dryers",
       plant: "shared",
       icon: "dryer",
-      summary: "Three dryers, shared between both plants. Each has its own steam valve, " +
-               "chamber and exit temperatures, and amps.",
-      note: "These numbers came straight off your screens. They are what \u201Cnormal\u201D looks like.",
+      summary: "Three dryers, shared between both plants \u2014 and, it turns out, shared with " +
+               "the Blood Plant as well. Each has its own steam valve, chamber and exit " +
+               "temperatures, and amps.",
+      note: "These numbers came straight off your screens, so they are what \u201Cnormal\u201D " +
+            "looks like. All three dryers are fed from one shared run, and the blood plant " +
+            "feeds that same run, so a dryer can be drying meal or blood. That matters a lot " +
+            "for startup, shutdown and species separation. One thing now settled: Dryer 3's " +
+            "200 \u00B0C is a CHAMBER reading \u2014 its exit was only 109 \u00B0C at the same " +
+            "moment, in line with the other two.",
       to: ["dryer-outfeed", "waste-heat"],
       nodes: [
         { id: "dryer1", tag: "Dryer 1", label: "Dryer 1", type: "dryer",
           values: [
+            { k: "Chamber temp", v: "108 \u2013 118 \u00B0C" },
+            { k: "Exit temp", v: "95.5 \u2013 119 \u00B0C" },
             { k: "Amps", v: "76 \u2013 93 A" },
-            { k: "Exit temp", v: "95.5 \u2013 97 \u00B0C" },
-            { k: "Chamber temp", v: "108 \u2013 110.6 \u00B0C" },
+            { k: "Fan motor", v: "M271" },
+            { k: "Drive motor", v: "M270" },
             { k: "Steam", v: "100 % steam valve, press to toggle" }
           ],
-          alarms: ["Dryer 1 Exit Temperature Low"] },
+          alarms: ["Dryer 1 Exit Temperature Low"],
+          note: "Fed by M269. Discharges to M274. Can be picked by Line 1 or Line 2. The older " +
+                "control system also tracks what species it is drying and which bin it is " +
+                "filling \u2014 it read \u201CBin 1 in Line 1, BEEF NOW\u201D when you took " +
+                "the photo, and had its own Auto Stop and Quick Stop to bin." },
         { id: "dryer2", tag: "Dryer 2", label: "Dryer 2", type: "dryer",
           values: [
-            { k: "Amps", v: "82 \u2013 83 A" },
-            { k: "Exit temp", v: "99 \u2013 104 \u00B0C" },
-            { k: "Chamber temp", v: "111 \u2013 113.1 \u00B0C" }
-          ] },
+            { k: "Chamber temp", v: "111 \u2013 122 \u00B0C" },
+            { k: "Exit temp", v: "99 \u2013 112 \u00B0C" },
+            { k: "Amps", v: "79 \u2013 83 A" },
+            { k: "Fan motor", v: "M281" },
+            { k: "Drive motor", v: "M280" }
+          ],
+          note: "Fed by M283. Discharges to M284. Can be picked by Line 1 or Line 2. Read " +
+                "\u201CBin 4 in Line 2, POULTRY NOW\u201D on the older system, and was NOT " +
+                "RUNNING at that moment." },
         { id: "dryer3", tag: "Dryer 3", label: "Dryer 3", type: "dryer",
           values: [
-            { k: "Amps", v: "86 \u2013 97 A" },
-            { k: "Exit temp", v: "96.9 \u2013 105 \u00B0C" },
-            { k: "Chamber temp", v: "102 \u2013 111 \u00B0C" }
-          ] }
+            { k: "Chamber temp", v: "102 \u2013 200 \u00B0C" },
+            { k: "Exit temp", v: "96.9 \u2013 109 \u00B0C" },
+            { k: "Amps", v: "73 \u2013 97 A" },
+            { k: "Fan motor", v: "M292" }
+          ],
+          note: "Fed by M293. Discharges to M294. Line 2 only \u2014 the selection buttons do " +
+                "not offer Dryer 3 to Line 1, which is worth asking about. Its chamber was " +
+                "reading 200 \u00B0C while the other two sat near 120 \u00B0C, yet the exit " +
+                "temperature was normal. Ask whether that is genuine or a duff sensor." }
       ],
       edges: []
     },
@@ -2052,34 +2138,91 @@ window.PLANT_MAP = {
       title: "Dryer Outfeed",
       plant: "shared",
       icon: "screw",
-      summary: "Dried meal off the three dryers, through the diverter valves and the screw " +
-               "network, on its way to the silos and milling.",
-      note: "A lot of screws on this screen. I have put in the main ones \u2014 tell me which " +
-            "others matter.",
-      to: ["silos-milling"],
+      summary: "Dried meal out of the three dryers. Each dryer has its own chain of screws " +
+               "down to a pair of A/B diverter valves, then everything collects on M321 and " +
+               "M311. At the end the two product lines split again: M312 carries Line 1 and " +
+               "M322 carries Line 2.",
+      note: "Rebuilt from the Dryer_OutFeedControl screen on 7 Oct 2026, which threw out most " +
+            "of my earlier guesses here. The A and B valves (V301A/B, V302A/B, V303A/B) are " +
+            "clearly a two-way choice on each dryer's discharge, but I do not know what each " +
+            "way means. I also cannot tell exactly how M301, M302 and M303 share M321 and " +
+            "M311. SPECIES: the older control system has its own \u201CDryer Outfeed To " +
+            "Bin\u201D page which shows, per dryer, which BIN and which LINE it is feeding " +
+            "and what species is running. When photographed it read \u201CBin 1 in Line 1, " +
+            "BEEF NOW\u201D for Dryer 1 and \u201CBin 4 in Line 2, POULTRY NOW\u201D for " +
+            "Dryers 2 and 3. Each dryer also has its own Auto Stop and Quick Stop to bin.",
+      to: ["silos-milling", "meal-bagging"],
       nodes: [
-        { id: "do-m265", tag: "M265", label: "Dryer 1 Outfeed Screw", type: "screw" },
-        { id: "do-m271", tag: "M271", label: "Dryer 2 Outfeed Screw", type: "screw" },
-        { id: "do-m273", tag: "M273", label: "Dryer 3 Outfeed Screw", type: "screw" },
-        { id: "do-m279", tag: "M279", label: "Collecting Screw", type: "screw" },
-        { id: "do-m281", tag: "M281", label: "Collecting Screw", type: "screw" },
-        { id: "do-vn52", tag: "VN52", label: "Diverter Valve", type: "valve",
-          alarms: ["VN52 Fail To Close"] },
-        { id: "do-vn57", tag: "VN57", label: "Diverter Valve", type: "valve",
-          alarms: ["VN57 Fail To Close"] },
-        { id: "do-m301", tag: "M301", label: "Transfer Screw", type: "screw" },
-        { id: "do-m311", tag: "M311", label: "Transfer Screw", type: "screw" },
-        { id: "do-fan", label: "Ventilation Fan", type: "fan",
-          note: "Toggled from the Dryer Outfeed screen." }
+        /* ---- Dryer 1 out ---- */
+        { id: "do-m274", tag: "M274", label: "Dryer 1 Outfeed Screw", type: "screw",
+          note: "Takes the meal straight off the Dryer 1 exit, where the 119 \u00B0C exit " +
+                "temperature is read." },
+        { id: "do-m276", tag: "M276", label: "Inclined Conveyor", type: "screw",
+          note: "The long sloped conveyor on the screen, lifting Dryer 1's meal up to the " +
+                "same level as the others." },
+        { id: "do-m278", tag: "M278", label: "Transfer Screw", type: "screw" },
+        { id: "do-v301", tag: "V301A / V301B", label: "Dryer 1 Diverter Valves", type: "valve",
+          note: "A two-way choice. What A and B each mean is still to confirm." },
+        { id: "do-m301", tag: "M301", label: "Dryer 1 Collecting Screw", type: "screw" },
+
+        /* ---- Dryer 2 out ---- */
+        { id: "do-m284", tag: "M284", label: "Dryer 2 Outfeed Screw", type: "screw",
+          note: "Dryer 2 exit read 112 \u00B0C." },
+        { id: "do-v302", tag: "V302A / V302B", label: "Dryer 2 Diverter Valves", type: "valve" },
+        { id: "do-m302", tag: "M302", label: "Dryer 2 Collecting Screw", type: "screw" },
+
+        /* ---- Dryer 3 out ---- */
+        { id: "do-m294", tag: "M294", label: "Dryer 3 Outfeed Screw", type: "screw",
+          note: "Dryer 3 exit read 109 \u00B0C, even though its chamber was showing 200 \u00B0C." },
+        { id: "do-m295", tag: "M295", label: "Transfer Screw", type: "screw" },
+        { id: "do-v303", tag: "V303A / V303B", label: "Dryer 3 Diverter Valves", type: "valve" },
+        { id: "do-m303", tag: "M303", label: "Dryer 3 Collecting Screw", type: "screw" },
+
+        /* ---- the two long collectors ---- */
+        { id: "do-m321", tag: "M321", label: "Collecting Conveyor", type: "screw" },
+        { id: "do-m311", tag: "M311", label: "Collecting Conveyor", type: "screw",
+          note: "M321 and M311 are the two long conveyors across the bottom of the screen. " +
+                "Which dryers feed which of the two is the bit I am least sure about." },
+
+        /* ---- the product split ---- */
+        { id: "do-v312", tag: "V312", label: "Line 1 Diverter Valve", type: "valve" },
+        { id: "do-m312", tag: "M312", label: "Line 1 Product Conveyor", type: "screw",
+          note: "Labelled \u201CLine 1\u201D on the screen. This is the ovine product." },
+        { id: "do-m323", tag: "M323", label: "Line 1 Product Conveyor", type: "screw" },
+        { id: "do-bagout", label: "Bag Out", type: "bagging",
+          note: "Labelled \u201CBag Out\u201D on the screen, at the end of the Line 1 side. " +
+                "This backs up what you told me earlier: ovine meal gets bagged." },
+        { id: "do-v324", tag: "V324", label: "Line 2 Diverter Valve", type: "valve" },
+        { id: "do-m322", tag: "M322", label: "Line 2 Product Conveyor", type: "screw",
+          note: "Labelled \u201CLine 2\u201D on the screen. This should be the MBM going to " +
+                "the silos, but the screen stops here \u2014 please confirm where it lands." }
       ],
       edges: [
-        { from: "do-m265", to: "do-m279", stream: "meal" },
-        { from: "do-m271", to: "do-m279", stream: "meal" },
-        { from: "do-m273", to: "do-m281", stream: "meal" },
-        { from: "do-m279", to: "do-vn52", stream: "meal" },
-        { from: "do-vn52", to: "do-m301", stream: "meal" },
-        { from: "do-m281", to: "do-vn57", stream: "meal" },
-        { from: "do-vn57", to: "do-m311", stream: "meal" }
+        { from: "do-m274", to: "do-m276", stream: "meal" },
+        { from: "do-m276", to: "do-m278", stream: "meal" },
+        { from: "do-m278", to: "do-v301", stream: "meal" },
+        { from: "do-v301", to: "do-m301", stream: "meal" },
+
+        { from: "do-m284", to: "do-v302", stream: "meal" },
+        { from: "do-v302", to: "do-m302", stream: "meal" },
+
+        { from: "do-m294", to: "do-m295", stream: "meal" },
+        { from: "do-m295", to: "do-v303", stream: "meal" },
+        { from: "do-v303", to: "do-m303", stream: "meal" },
+
+        { from: "do-m301", to: "do-m311", stream: "meal" },
+        { from: "do-m302", to: "do-m311", stream: "meal", dashed: true },
+        { from: "do-m302", to: "do-m321", stream: "meal", dashed: true },
+        { from: "do-m303", to: "do-m321", stream: "meal", dashed: true },
+
+        { from: "do-m311", to: "do-v312", stream: "meal" },
+        { from: "do-m321", to: "do-v324", stream: "meal" },
+
+        { from: "do-v312", to: "do-m312", stream: "meal", label: "Line 1" },
+        { from: "do-m312", to: "do-m323", stream: "meal" },
+        { from: "do-m323", to: "do-bagout", stream: "meal" },
+
+        { from: "do-v324", to: "do-m322", stream: "meal", label: "Line 2" }
       ]
     },
 
@@ -2089,37 +2232,158 @@ window.PLANT_MAP = {
       title: "Liquid Phase",
       plant: "shared",
       icon: "decanter",
-      summary: "Where all the liquid from both plants collects. Buffer tank, the Alfa and " +
-               "Plant 2 decanters, screens, and the tallow feed tanks. Water goes off to " +
-               "Trade Waste.",
-      note: "This is the area I am least sure about. The plumbing here is my reading of the " +
-            "screen \u2014 please go through it with me.",
+      summary: "Where all the liquid from both plants collects. Liquid off the Twin Screw " +
+               "Press and off Cooker 2 lands in the Tallow Buffer Tank, which is steam " +
+               "heated. P200 then pushes it out to the decanters. There are THREE decanters " +
+               "here: a Gtech on Plant 1, and both a Gtech and an Alfa on Plant 2. Cleaned " +
+               "tallow goes to the two Tallow Feed Tanks (LQ 3), and the stick water goes " +
+               "off to Trade Waste on PSW205.",
+      note: "Rebuilt from the Liquid_Phase screen on 7 Oct 2026. The big correction is the " +
+            "decanter count \u2014 I had two, there are three, and the Alfa and the Gtech on " +
+            "Plant 2 are separate machines. What I still cannot tell from the screen is the " +
+            "flow direction at the top (whether P262 and M261 push INTO the buffer tank or " +
+            "draw out of it) and exactly what PO205 and P175 are pumping. Those two are the " +
+            "main things to walk down.",
       to: ["separators", "trade-waste"],
       nodes: [
+        /* ---- liquid coming in from Plant 2 ---- */
+        { id: "lp-p262", tag: "P262", label: "Press Liquid Pump", type: "pump",
+          note: "The screen labels this line \u201CTwin Screw Press\u201D, so this is the " +
+                "liquid coming off the press in Plant 2." },
+        { id: "lp-ct262", label: "Press Liquid Catch Tank", type: "tank", guess: true,
+          note: "A small tank drawn between P262 and WV262. I do not know its tag." },
+        { id: "lp-wv262", tag: "WV262", label: "Press Liquid Valve", type: "valve" },
+        { id: "lp-m261", tag: "M261", label: "Cooker 2 Liquid Pump", type: "pump",
+          note: "The screen labels this line \u201CCooker 2\u201D." },
+        { id: "lp-ct261", label: "Cooker 2 Liquid Catch Tank", type: "tank", guess: true },
+        { id: "lp-wv261", tag: "WV261", label: "Cooker 2 Liquid Valve", type: "valve" },
+
+        /* ---- the buffer tank and its services ---- */
         { id: "lp-buffer", label: "Tallow Buffer Tank", type: "tank",
-          values: [{ k: "Temperature", v: "76.8 \u00B0C" }, { k: "Level", v: "1.9" }] },
-        { id: "lp-p200", tag: "P200", label: "Product Pump", type: "pump" },
-        { id: "lp-alfa", label: "Alfa Decanter", type: "decanter" },
-        { id: "lp-dec2", tag: "PLANT 2 / M201", label: "Plant 2 Decanter", type: "decanter",
-          alarms: ["Back Drive Tripped (M201BD)"] },
-        { id: "lp-screen", label: "Vibrating Screen", type: "shaker", guess: true },
+          values: [
+            { k: "Temperature", v: "80 \u00B0C (76.8 \u00B0C on an earlier photo)" },
+            { k: "Level", v: "1.9 on an earlier photo" }
+          ],
+          note: "Everything liquid passes through here. Steam heated, so it has to be warm " +
+                "before anything will pump." },
+        { id: "lp-sv200", tag: "SV200", label: "Steam Valve", type: "valve",
+          note: "Drawn under the \u201CSteam\u201D label at the bottom of the buffer tank." },
+        { id: "lp-lv200", tag: "LV200", label: "Buffer Tank Valve", type: "valve", guess: true,
+          note: "Sits next to SV200. I do not know what it does \u2014 possibly the tank " +
+                "drain or a level control." },
+        { id: "lp-hotflush", label: "Hot Flush Water", type: "valve",
+          note: "Labelled in blue at the top right of the screen. Used for washing the lines " +
+                "through. Where exactly it ties in is not clear." },
+
+        /* ---- out of the buffer tank ---- */
+        { id: "lp-pv200", tag: "PV200", label: "Product Valve", type: "valve" },
+        { id: "lp-wv200", tag: "WV200", label: "Water Valve", type: "valve" },
+        { id: "lp-p200", tag: "P200", label: "Product Pump", type: "pump",
+          note: "The main pump of this area. Feeds whichever decanter is lined up." },
+
+        /* ---- Plant 2 Alfa decanter ---- */
+        { id: "lp-pv205", tag: "PV205", label: "Alfa Feed Valve", type: "valve" },
+        { id: "lp-wv205", tag: "WV205", label: "Alfa Water Valve", type: "valve" },
+        { id: "lp-alfa2", label: "Alfa Decanter \u2014 Plant 2", type: "decanter",
+          note: "The screen labels this one \u201CAlfa\u201D on top and \u201CPLANT 2\u201D on " +
+                "the body. It is a different machine from the Gtech on Plant 2." },
+        { id: "lp-po205", tag: "PO205", label: "Alfa Feed Pump", type: "pump", guess: true,
+          note: "Drawn just left of the Alfa with an arrow into it. I have assumed it feeds " +
+                "the Alfa, but it could be pumping out of the Gtech side instead. Confirm." },
+        { id: "lp-m205", tag: "M205", label: "Alfa Outfeed Screw", type: "screw" },
+        { id: "lp-psw205", tag: "PSW205", label: "Stick Water Pump", type: "pump",
+          note: "Clearly marked on the screen with an arrow to \u201CTrade Waste\u201D." },
+
+        /* ---- Plant 2 Gtech decanter ---- */
+        { id: "lp-pv201", tag: "PV201", label: "Gtech Feed Valve", type: "valve" },
+        { id: "lp-gtech2", tag: "M201", label: "Gtech Decanter \u2014 Plant 2", type: "decanter",
+          alarms: ["Back Drive Tripped (M201BD)"],
+          note: "Labelled \u201CGtech\u201D on top and \u201CPLANT 2\u201D on the body. The " +
+                "back drive trip alarm was showing when you took the photo." },
+        { id: "lp-m201bd", tag: "M201BD", label: "Gtech Back Drive", type: "pump",
+          note: "The back drive on the Plant 2 Gtech. This is what the trip alarm refers to." },
+        { id: "lp-m202", tag: "M202", label: "Gtech Outfeed Screw", type: "screw" },
+        { id: "lp-m257", tag: "M257", label: "Liquid Phase Screen", type: "shaker",
+          note: "The cone-shaped unit under the Plant 2 Gtech. I have called it a screen " +
+                "because of the shape, but confirm what it actually is." },
+        { id: "lp-wv201", tag: "WV201", label: "Transfer Valve", type: "valve" },
         { id: "lp-p257", tag: "P257", label: "Transfer Pump", type: "pump" },
-        { id: "lp-lq3a", tag: "LQ 3", label: "Tallow Feed Tank A", type: "tank" },
-        { id: "lp-lq3b", tag: "LQ 3", label: "Tallow Feed Tank B", type: "tank" },
-        { id: "lp-t1", label: "Plant 1 Liquid Phase Tank", type: "tank" },
-        { id: "lp-t2", label: "Plant 2 Liquid Phase Tank", type: "tank" },
-        { id: "lp-psw205", tag: "PSW205", label: "Stick Water to Trade Waste", type: "pump" }
+
+        /* ---- Plant 1 Gtech decanter ---- */
+        { id: "lp-m169", tag: "M169", label: "Plant 1 Decanter Feed", type: "pump", guess: true,
+          note: "Drawn at the left-hand end of the Plant 1 Gtech. I previously had M169 down " +
+                "as a buffer tank on the cooker page, which now looks wrong \u2014 it belongs " +
+                "here. What it drives still needs confirming." },
+        { id: "lp-gtech1", label: "Gtech Decanter \u2014 Plant 1", type: "decanter",
+          values: [{ k: "Level switches", v: "S175 HL and S175 LL" }],
+          note: "Labelled \u201CGtech\u201D on top and \u201CPLANT 1\u201D on the body. This is " +
+                "the ovine decanter, and it is the same machine as the Plant 1 Decanter on the " +
+                "Plant 1 Cooker Area page \u2014 it just appears on both screens, the cooker " +
+                "one for its speeds and torque, this one for where the liquid goes." },
+        { id: "lp-p175", tag: "P175", label: "Plant 1 Liquid Pump", type: "pump", guess: true,
+          note: "Drawn above the Plant 1 decanter with its line running right. I have drawn " +
+                "it joining the M257 screen, but that is a guess." },
+        { id: "lp-m178", tag: "M178", label: "Plant 1 Outfeed Screw", type: "screw" },
+        { id: "lp-m179", tag: "M179", label: "Plant 1 Outfeed Screw", type: "screw" },
+        { id: "lp-m176", tag: "M176", label: "Plant 1 Liquid Phase Screen", type: "shaker",
+          note: "The cone unit at the bottom of the screen, the Plant 1 equivalent of M257." },
+        { id: "lp-wv177", tag: "WV177", label: "Transfer Valve", type: "valve",
+          values: [{ k: "High level switch", v: "S177 HL" }] },
+        { id: "lp-p177", tag: "P177", label: "Tallow Transfer Pump", type: "pump" },
+
+        /* ---- the two feed tanks ---- */
+        { id: "lp-lq3a", tag: "LQ 3", label: "Tallow Feed Tank 1", type: "tank" },
+        { id: "lp-lq3b", tag: "LQ 3", label: "Tallow Feed Tank 2", type: "tank",
+          note: "Both tanks carry the same LQ 3 label on the screen, so I have numbered them " +
+                "1 and 2 myself. What are they called on site?" }
       ],
       edges: [
-        { from: "lp-buffer", to: "lp-p200", stream: "tallow" },
-        { from: "lp-p200", to: "lp-alfa", stream: "tallow" },
-        { from: "lp-alfa", to: "lp-dec2", stream: "tallow", dashed: true },
-        { from: "lp-dec2", to: "lp-screen", stream: "tallow" },
-        { from: "lp-screen", to: "lp-p257", stream: "tallow" },
+        /* in from Plant 2 */
+        { from: "lp-p262", to: "lp-ct262", stream: "tallow", label: "press liquid" },
+        { from: "lp-ct262", to: "lp-wv262", stream: "tallow" },
+        { from: "lp-wv262", to: "lp-buffer", stream: "tallow" },
+        { from: "lp-m261", to: "lp-ct261", stream: "tallow", label: "cooker liquid" },
+        { from: "lp-ct261", to: "lp-wv261", stream: "tallow" },
+        { from: "lp-wv261", to: "lp-buffer", stream: "tallow" },
+
+        /* services */
+        { from: "lp-sv200", to: "lp-buffer", stream: "steam", label: "heating" },
+        { from: "lp-lv200", to: "lp-buffer", stream: "tallow", dashed: true },
+        { from: "lp-hotflush", to: "lp-buffer", stream: "water", dashed: true, label: "flush" },
+
+        /* out of the buffer */
+        { from: "lp-buffer", to: "lp-pv200", stream: "tallow" },
+        { from: "lp-pv200", to: "lp-p200", stream: "tallow" },
+        { from: "lp-wv200", to: "lp-p200", stream: "water", dashed: true },
+
+        /* to the Alfa */
+        { from: "lp-p200", to: "lp-pv205", stream: "tallow" },
+        { from: "lp-pv205", to: "lp-alfa2", stream: "tallow" },
+        { from: "lp-wv205", to: "lp-alfa2", stream: "water", dashed: true },
+        { from: "lp-po205", to: "lp-alfa2", stream: "tallow", dashed: true },
+        { from: "lp-alfa2", to: "lp-m205", stream: "meal", label: "solids" },
+        { from: "lp-alfa2", to: "lp-psw205", stream: "water", label: "stick water" },
+
+        /* to the Plant 2 Gtech */
+        { from: "lp-p200", to: "lp-pv201", stream: "tallow" },
+        { from: "lp-pv201", to: "lp-gtech2", stream: "tallow" },
+        { from: "lp-gtech2", to: "lp-m201bd", stream: "tallow", dashed: true, label: "back drive" },
+        { from: "lp-gtech2", to: "lp-m202", stream: "meal", label: "solids" },
+        { from: "lp-gtech2", to: "lp-m257", stream: "tallow" },
+        { from: "lp-m257", to: "lp-wv201", stream: "tallow" },
+        { from: "lp-wv201", to: "lp-p257", stream: "tallow" },
         { from: "lp-p257", to: "lp-lq3b", stream: "tallow" },
-        { from: "lp-lq3a", to: "lp-t1", stream: "tallow" },
-        { from: "lp-lq3b", to: "lp-t2", stream: "tallow" },
-        { from: "lp-dec2", to: "lp-psw205", stream: "water", label: "stick water" }
+
+        /* the Plant 1 side */
+        { from: "lp-m169", to: "lp-gtech1", stream: "tallow" },
+        { from: "lp-gtech1", to: "lp-m178", stream: "meal", label: "solids" },
+        { from: "lp-m178", to: "lp-m179", stream: "meal" },
+        { from: "lp-m179", to: "lp-m176", stream: "tallow" },
+        { from: "lp-gtech1", to: "lp-p175", stream: "tallow", label: "liquid" },
+        { from: "lp-p175", to: "lp-m257", stream: "tallow", dashed: true },
+        { from: "lp-m176", to: "lp-wv177", stream: "tallow" },
+        { from: "lp-wv177", to: "lp-p177", stream: "tallow" },
+        { from: "lp-p177", to: "lp-lq3a", stream: "tallow" }
       ]
     },
 
@@ -2144,9 +2408,13 @@ window.PLANT_MAP = {
         { id: "sep-lp108", tag: "LP108", label: "Tallow Transfer Pump", type: "pump" },
         { id: "sep-lp110", tag: "LP110", label: "Tallow Transfer Pump", type: "pump" },
         { id: "tt1", label: "Tallow Transfer Tank 1", type: "tank",
-          values: [{ k: "Level", v: "2.5 %" }, { k: "Temperature", v: "56.6 \u00B0C" }] },
+          values: [{ k: "Level", v: "2.5 %" }, { k: "Temperature", v: "56.6 \u00B0C" }],
+          note: "Also on the Tank Farm screen, where it has its own pump P151 and flow meter " +
+                "FM2 feeding the bottom row of tanks." },
         { id: "tt2", label: "Tallow Transfer Tank 2", type: "tank",
-          values: [{ k: "Level", v: "41.5 %" }, { k: "Temperature", v: "59.0 \u00B0C" }] },
+          values: [{ k: "Level", v: "41.5 %" }, { k: "Temperature", v: "59.0 \u00B0C" }],
+          note: "Also on the Tank Farm screen, where it has its own pump P150 and flow meter " +
+                "FM1 feeding the top row of tanks." },
         { id: "sep-sw", label: "Stick Water Out", type: "valve" }
       ],
       edges: [
@@ -2170,23 +2438,116 @@ window.PLANT_MAP = {
       title: "Tallow Farm",
       plant: "shared",
       icon: "tank",
-      summary: "The outside tank farm and tanker loadout.",
-      note: "I still do not know how the UCO tanks connect, so nothing is drawn to them.",
+      summary: "The outside tank farm. The two Tallow Transfer Tanks each have their own " +
+               "pump and flow meter: P150/FM1 fills the top row, P151/FM2 fills the bottom " +
+               "row. The operator picks one destination tank per row. Alongside the four " +
+               "tallow tanks there are two I.C.O. tanks, one for receival and one for " +
+               "despatch.",
+      note: "Rebuilt from the Tank_Farm screen on 7 Oct 2026, then corrected by you. The two " +
+            "oil tanks are UCO (used cooking oil), not ICO \u2014 I misread the screen. " +
+            "Importantly the UCO side does NOT connect to the rendering process at all: oil " +
+            "is received into UCO 6, and once it reaches temperature it is transferred to " +
+            "UCO 3, which is what the despatch tanker loads from. Treat it as a separate " +
+            "little system sitting in the same tank farm. Note also the tallow tanks are " +
+            "numbered 1, 2, 4 and 5 \u2014 there is no Tank 3 on this screen.",
       to: [],
       nodes: [
-        { id: "tf1", label: "Tallow Tank 1", type: "tank" },
-        { id: "tf2", label: "Tallow Tank 2", type: "tank" },
-        { id: "tf3", label: "Tallow Tank 3", type: "tank" },
-        { id: "tf4", label: "Tallow Tank 4", type: "tank" },
-        { id: "uco1", label: "UCO Tank 1", type: "tank", guess: true },
-        { id: "uco2", label: "UCO Tank 2", type: "tank", guess: true },
-        { id: "tf-load", label: "Tanker Loadout", type: "pump", guess: true }
+        /* ---- the two transfer tanks and their pumps ---- */
+        { id: "tf-tt2", label: "Tallow Transfer Tank 2", type: "tank",
+          note: "Same machine as Tallow Transfer Tank 2 on the Separators page. It feeds the " +
+                "top row of the farm." },
+        { id: "tf-pv1", tag: "PV1", label: "Transfer Valve", type: "valve" },
+        { id: "tf-pv2", tag: "PV2", label: "Transfer Valve", type: "valve" },
+        { id: "tf-p150", tag: "P150", label: "Top Line Transfer Pump", type: "pump" },
+        { id: "tf-fm1", tag: "FM1", label: "Top Line Flow Meter", type: "valve",
+          note: "A measurement, not a machine. This is how the transfer quantity is recorded." },
+
+        { id: "tf-tt1", label: "Tallow Transfer Tank 1", type: "tank",
+          note: "Same machine as Tallow Transfer Tank 1 on the Separators page. It feeds the " +
+                "bottom row of the farm." },
+        { id: "tf-pv5", tag: "PV5", label: "Transfer Valve", type: "valve" },
+        { id: "tf-pv6", tag: "PV6", label: "Transfer Valve", type: "valve" },
+        { id: "tf-p151", tag: "P151", label: "Bottom Line Transfer Pump", type: "pump" },
+        { id: "tf-fm2", tag: "FM2", label: "Bottom Line Flow Meter", type: "valve" },
+
+        { id: "tf-cross", tag: "AV1 / AV2 / PV3 / PV4", label: "Cross-connect Valves",
+          type: "valve", guess: true,
+          note: "Four valves drawn between the two transfer tanks. I have assumed they let " +
+                "either tank feed either pump, which is the usual reason for that " +
+                "arrangement, but the screen does not say so. Please confirm." },
+
+        /* ---- top row destinations ---- */
+        { id: "tf-v2", tag: "V2", label: "Top Line Valve", type: "valve" },
+        { id: "tf-t1", label: "Tallow Tank 1", type: "tank",
+          values: [{ k: "Capacity", v: "82 T" }, { k: "Level when photographed", v: "62.2" },
+                   { k: "State", v: "Tank 1 Selected" }] },
+        { id: "tf-v3", tag: "V3", label: "Top Line Valve", type: "valve" },
+        { id: "tf-t2", label: "Tallow Tank 2", type: "tank",
+          values: [{ k: "Level when photographed", v: "16.9" }],
+          note: "The capacity is not shown against this one on the screen." },
+        { id: "tf-uco3", label: "UCO 3 \u2014 Despatch Tank", type: "tank",
+          values: [{ k: "Capacity", v: "46 T" }, { k: "Level when photographed", v: "34.7 T" }],
+          note: "Filled from UCO 6 once the oil has reached temperature. This is the tank " +
+                "the despatch tanker loads from. Nothing from the rendering process goes " +
+                "into it." },
+
+        /* ---- bottom row destinations ---- */
+        { id: "tf-v1", tag: "V1", label: "Bottom Line Valve", type: "valve" },
+        { id: "tf-t4", label: "Tallow Tank 4", type: "tank",
+          values: [{ k: "Capacity", v: "82 T" }, { k: "Level when photographed", v: "81.2" },
+                   { k: "State", v: "Tank 4 Selected" }],
+          note: "Was nearly full when you took the photo." },
+        { id: "tf-t5", label: "Tallow Tank 5", type: "tank",
+          values: [{ k: "Capacity", v: "44 T" }, { k: "Level when photographed", v: "0.0 T" }],
+          note: "Empty at the time." },
+        { id: "tf-uco6", label: "UCO 6 \u2014 Receival Tank", type: "tank",
+          values: [{ k: "Capacity", v: "26 T" }, { k: "Level when photographed", v: "0.7 T" }],
+          note: "Used cooking oil is received into this tank. Once it reaches temperature it " +
+                "is transferred across to UCO 3 for despatch. Nearly empty at the time." },
+        { id: "tf-uco-transfer", label: "UCO 6 to UCO 3 Transfer", type: "pump", guess: true,
+          note: "The transfer happens on temperature, so there is a pump and probably a " +
+                "temperature setpoint behind it. What temperature, and is the transfer manual " +
+                "or automatic?" },
+
+        /* ---- in and out of site ---- */
+        { id: "tf-tanker-in", label: "UCO Tanker Receival", type: "pump", guess: true,
+          note: "Where the used cooking oil arrives. Not drawn on the screen." },
+        { id: "tf-tanker-out", label: "Tanker Loadout", type: "pump", guess: true,
+          note: "Not drawn on this screen. How is a tanker actually loaded, and from which " +
+                "tanks?" }
       ],
       edges: [
-        { from: "tf1", to: "tf-load", stream: "tallow" },
-        { from: "tf2", to: "tf-load", stream: "tallow" },
-        { from: "tf3", to: "tf-load", stream: "tallow" },
-        { from: "tf4", to: "tf-load", stream: "tallow" }
+        { from: "tf-tt2", to: "tf-pv1", stream: "tallow" },
+        { from: "tf-pv1", to: "tf-pv2", stream: "tallow" },
+        { from: "tf-pv2", to: "tf-p150", stream: "tallow" },
+        { from: "tf-p150", to: "tf-fm1", stream: "tallow" },
+        { from: "tf-fm1", to: "tf-v2", stream: "tallow" },
+        { from: "tf-v2", to: "tf-t1", stream: "tallow" },
+        { from: "tf-v2", to: "tf-v3", stream: "tallow" },
+        { from: "tf-v3", to: "tf-t2", stream: "tallow" },
+
+        { from: "tf-tt1", to: "tf-pv5", stream: "tallow" },
+        { from: "tf-pv5", to: "tf-pv6", stream: "tallow" },
+        { from: "tf-pv6", to: "tf-p151", stream: "tallow" },
+        { from: "tf-p151", to: "tf-fm2", stream: "tallow" },
+        { from: "tf-fm2", to: "tf-v1", stream: "tallow" },
+        { from: "tf-v1", to: "tf-t4", stream: "tallow" },
+        { from: "tf-v1", to: "tf-t5", stream: "tallow" },
+
+        { from: "tf-tt2", to: "tf-cross", stream: "tallow", dashed: true },
+        { from: "tf-tt1", to: "tf-cross", stream: "tallow", dashed: true },
+
+        /* the UCO side is its own little system — nothing from the
+           rendering process feeds into it */
+        { from: "tf-tanker-in", to: "tf-uco6", stream: "tallow", label: "UCO in" },
+        { from: "tf-uco6", to: "tf-uco-transfer", stream: "tallow", label: "at temperature" },
+        { from: "tf-uco-transfer", to: "tf-uco3", stream: "tallow" },
+        { from: "tf-uco3", to: "tf-tanker-out", stream: "tallow", label: "UCO out" },
+
+        { from: "tf-t1", to: "tf-tanker-out", stream: "tallow", dashed: true },
+        { from: "tf-t2", to: "tf-tanker-out", stream: "tallow", dashed: true },
+        { from: "tf-t4", to: "tf-tanker-out", stream: "tallow", dashed: true },
+        { from: "tf-t5", to: "tf-tanker-out", stream: "tallow", dashed: true }
       ]
     },
 
@@ -2271,60 +2632,184 @@ window.PLANT_MAP = {
 
     /* ======================================================= */
     {
+      id: "contra-shear",
+      title: "Contra Shear Room",
+      plant: "services",
+      icon: "contrashear",
+      summary: "Where all the plant's waste water starts. Everything drains to the Main Pit, " +
+               "two submersible pumps lift it up to the Contra Shear, and the screened water " +
+               "drops into a collection tank. CP1M102 and CP1M103 then pump it across to " +
+               "Tank 1 at the Trade Waste Plant.",
+      note: "Read off the Contra-Shear screen on 7 Oct 2026. The screen itself has two " +
+            "unlabelled \u201C?\u201D marks on the contra shear unit, so even the HMI does " +
+            "not name those parts. I also do not know where the screenings go once the " +
+            "contra shear has taken them out of the water \u2014 that is the main question " +
+            "here.",
+      to: ["trade-waste"],
+      nodes: [
+        { id: "cs-pit", label: "Main Pit", type: "pit",
+          note: "The low point of the site. All the washdown and process water ends up here." },
+        { id: "cs-pump1", label: "Pit Pump 1", type: "pump",
+          note: "Submersible, sitting in the pit. Labelled just \u201CPump 1\u201D on the " +
+                "screen, with no tag number." },
+        { id: "cs-pump2", label: "Pit Pump 2", type: "pump",
+          note: "Labelled \u201CPump2\u201D on the screen. Is it a duty/standby pair with " +
+                "Pump 1, or do they both run?" },
+        { id: "cs-level", label: "Pit Level Sensor", type: "valve", guess: true,
+          note: "Drawn on the edge of the pit. I have assumed it is what starts and stops " +
+                "the pumps." },
+        { id: "cs-unit", label: "Contra Shear", type: "contrashear",
+          note: "The rotating drum screen. This is the machine that takes the solids out of " +
+                "the water before any chemical treatment." },
+        { id: "cs-tank", label: "Contra Shear Collection Tank", type: "tank",
+          values: [{ k: "Level (CTLT)", v: "361" }],
+          note: "Sits under the contra shear and catches the screened water." },
+        { id: "cs-cp1m102", tag: "CP1M102", label: "Transfer Pump", type: "pump" },
+        { id: "cs-cp1m103", tag: "CP1M103", label: "Transfer Pump", type: "pump",
+          note: "The screen marks the line out of these two \u201CTo Tank 1 Trade Waste " +
+                "Plant\u201D, so this is the hand-over point." },
+        { id: "cs-screenings", label: "Screenings Out", type: "bin", guess: true,
+          note: "Nothing on the screen shows where the solids taken out by the contra shear " +
+                "go. A bin? Back into the raw material? Please find out \u2014 if they go " +
+                "back into the process that matters for species separation." }
+      ],
+      edges: [
+        { from: "cs-level", to: "cs-pit", stream: "water", dashed: true },
+        { from: "cs-pit", to: "cs-pump1", stream: "water" },
+        { from: "cs-pit", to: "cs-pump2", stream: "water" },
+        { from: "cs-pump1", to: "cs-unit", stream: "water" },
+        { from: "cs-pump2", to: "cs-unit", stream: "water" },
+        { from: "cs-unit", to: "cs-tank", stream: "water", label: "screened water" },
+        { from: "cs-unit", to: "cs-screenings", stream: "meal", dashed: true, label: "solids" },
+        { from: "cs-tank", to: "cs-cp1m102", stream: "water" },
+        { from: "cs-tank", to: "cs-cp1m103", stream: "water" }
+      ]
+    },
+
+    /* ======================================================= */
+    {
       id: "trade-waste",
       title: "Trade Waste Plant",
       plant: "services",
       icon: "daf",
-      summary: "Effluent treatment. The Contra Shear screens the solids out first, then the " +
-               "water is dosed with chemicals and goes through two DAF units before it " +
-               "leaves site. Sludge and blood go to the Blood Plant.",
+      summary: "Effluent treatment. Waste water comes off the Contra Shear into Tank 1, " +
+               "where acid is dosed and a mixer keeps it stirred. P3 then pushes it through " +
+               "the coagulant, polymer and caustic dosing points into the DAF. Treated water " +
+               "goes up to Tanks 3 and 4, then out through P5 and P6 with the flow, " +
+               "temperature and pH all measured on the way.",
+      note: "Rebuilt from the TRADE WASTE TANKS screen on 7 Oct 2026. Two corrections: there " +
+            "is only ONE DAF on this screen, not two, and the chemicals are now named \u2014 " +
+            "DP1 acid, DP2 coagulant, DP3 polymer, DP4 caustic, DP7 and DP8 hydrogen " +
+            "peroxide. The Contra Shear behind its own button is now drawn as its own area. " +
+            "The one screen still missing is \u201CDaff\u201D, which is probably where the " +
+            "saturators and the sludge/blood tank live \u2014 please photograph it.",
       to: ["blood-plant"],
       nodes: [
-        { id: "tw-cs", label: "Contra Shear", type: "contrashear",
-          note: "Screens solids out of the effluent before Tank 1. On the water side, not the raw side." },
+        /* ---- Tank 1 and acid dosing ---- */
         { id: "tw-t1", label: "Tank 1", type: "tank",
-          values: [{ k: "pH", v: "5.65" }, { k: "Temperature", v: "36.4 \u00B0C" }] },
-        { id: "tw-dp1", tag: "DP1", label: "Acid Dosing", type: "dosingpump" },
-        { id: "tw-dp2", tag: "DP2", label: "Dosing Pump 2", type: "dosingpump", guess: true },
-        { id: "tw-dp3", tag: "DP3", label: "Polymer Dosing", type: "dosingpump" },
-        { id: "tw-dp4", tag: "DP4", label: "Caustic Dosing", type: "dosingpump" },
-        { id: "tw-dp5", tag: "DP5", label: "Peroxide Dosing", type: "dosingpump" },
-        { id: "tw-p3", tag: "P3", label: "Transfer Pump", type: "pump",
-          values: [{ k: "Speed", v: "21 Hz" }] },
-        { id: "tw-sat1", label: "Saturator 1", type: "saturator",
-          values: [{ k: "Cycle on delay", v: "81 secs" }] },
-        { id: "tw-sat2", label: "Saturator 2", type: "saturator",
-          values: [{ k: "Cycle on delay", v: "81 secs" }] },
-        { id: "tw-daf1", label: "DAF 1", type: "daf",
-          values: [{ k: "pH after dosing", v: "6.48" }] },
-        { id: "tw-daf2", label: "DAF 2", type: "daf" },
-        { id: "tw-t3", label: "Tank 3", type: "tank" },
-        { id: "tw-t4", label: "Tank 4", type: "tank" },
-        { id: "tw-t5", label: "Tank 5", type: "tank", note: "Sludge and blood." },
-        { id: "tw-p2", tag: "P2", label: "Blood Transfer Pump", type: "pump" },
-        { id: "tw-hot", label: "Hot Water Recovery", type: "valve", guess: true },
-        { id: "tw-sewer", label: "To Sewer", type: "valve" }
+          values: [
+            { k: "pH", v: "5.65 on an earlier photo" },
+            { k: "Temperature", v: "36.4 \u00B0C on an earlier photo" }
+          ],
+          note: "The balance tank. Everything arrives here first, pumped over from the Contra " +
+                "Shear Room by CP1M102 and CP1M103." },
+        { id: "tw-sm1", tag: "SM1", label: "Tank 1 Mixer", type: "pump", guess: true,
+          note: "Drawn on the side of Tank 1. I have assumed it is the mixer or agitator." },
+        { id: "tw-rc1", tag: "RC1", label: "Tank 1 Recirculation", type: "pump", guess: true,
+          note: "Sits at the bottom of Tank 1 next to P3. Purpose not clear." },
+        { id: "tw-dp1", tag: "DP1", label: "Acid Dosing Pump", type: "dosingpump",
+          note: "Marked \u201CAcid Pump\u201D on the screen. Doses into Tank 1." },
+
+        /* ---- out of Tank 1, through the dosing ---- */
+        { id: "tw-p3", tag: "P3", label: "DAF Feed Pump", type: "pump",
+          values: [{ k: "Speed", v: "21 Hz on an earlier photo" }] },
+        { id: "tw-v1", tag: "V1", label: "Feed Valve", type: "valve" },
+        { id: "tw-ft1", tag: "FT1", label: "Feed Flow Meter", type: "valve",
+          values: [{ k: "Flow", v: "20" }],
+          note: "Not a machine, a measurement. Units not shown on the screen." },
+        { id: "tw-dp2", tag: "DP2", label: "Coagulant Dosing Pump", type: "dosingpump",
+          note: "Marked \u201CCoag\u201D on the screen. I had this one as unknown before." },
+        { id: "tw-dp3", tag: "DP3", label: "Polymer Dosing Pump", type: "dosingpump",
+          note: "Marked \u201CPolymar\u201D on the screen \u2014 polymer." },
+        { id: "tw-dp4", tag: "DP4", label: "Caustic Dosing Pump", type: "dosingpump" },
+        { id: "tw-ph2", tag: "PH2", label: "pH After Dosing", type: "valve",
+          values: [{ k: "Reading", v: "0.06 \u2014 units unclear" }],
+          note: "This reads 0.06, which cannot be a pH. Either it is a dosing rate or the " +
+                "scaling is out. Worth asking, because the operator needs to know what good " +
+                "looks like here." },
+
+        /* ---- the DAF ---- */
+        { id: "tw-daf", label: "DAF", type: "daf",
+          values: [{ k: "pH after dosing", v: "6.48 on an earlier photo" }],
+          note: "Only one DAF is drawn on this screen. I previously had two \u2014 if there " +
+                "really are two, the second is probably on the Daff screen." },
+        { id: "tw-dp8", tag: "DP8", label: "Peroxide Dosing Pump", type: "dosingpump",
+          note: "Marked \u201CH2O2 Pump\u201D. Doses into the DAF line from below." },
+        { id: "tw-p4", tag: "P4", label: "DAF Outlet Pump", type: "pump" },
+        { id: "tw-dp7", tag: "DP7", label: "Peroxide Dosing Pump", type: "dosingpump",
+          note: "The second \u201CH2O2 Pump\u201D, dosing up near V2." },
+        { id: "tw-v2", tag: "V2", label: "Tank Selection Valve", type: "valve",
+          note: "Sits above the DAF outlet and decides whether the water goes to Tank 3 or " +
+                "Tank 4." },
+
+        /* ---- the two holding tanks ---- */
+        { id: "tw-t3", label: "Tank 3", type: "tank",
+          values: [{ k: "Level", v: "3016" }, { k: "Vent valve", v: "SV3" }] },
+        { id: "tw-t4", label: "Tank 4", type: "tank",
+          values: [{ k: "Level", v: "362" }, { k: "Vent valve", v: "SV4" }],
+          note: "Tank 3 was nearly full and Tank 4 nearly empty when you took the photo, so " +
+                "they are probably filled and emptied one at a time. Confirm how that works." },
+
+        /* ---- out of site ---- */
+        { id: "tw-p5", tag: "P5", label: "Tank 3 Discharge Pump", type: "pump" },
+        { id: "tw-v7", tag: "V7", label: "Tank 3 Discharge Valve", type: "valve" },
+        { id: "tw-p6", tag: "P6", label: "Tank 4 Discharge Pump", type: "pump" },
+        { id: "tw-v8", tag: "V8", label: "Tank 4 Discharge Valve", type: "valve" },
+        { id: "tw-outfall", label: "Final Discharge", type: "valve",
+          values: [
+            { k: "Flow (FT2)", v: "13" },
+            { k: "Temperature (TT3)", v: "394 as shown \u2014 probably 39.4 \u00B0C" },
+            { k: "pH (PH3)", v: "6.55" }
+          ],
+          note: "The bottom line of the screen, heading off to the left. These three readings " +
+                "are what leaves the site, so they are almost certainly the numbers your " +
+                "licence is written around. Find out the limits." },
+
+        /* ---- not on this screen, kept from before ---- */
+        { id: "tw-t5", label: "Tank 5 \u2014 sludge and blood", type: "tank", guess: true,
+          note: "Not on the Trade Waste Tanks screen. I noted it from an earlier photo, and " +
+                "the blood plant has to get its blood from somewhere, so I have left it in. " +
+                "Probably on the Daff screen." },
+        { id: "tw-p2", tag: "P2", label: "Blood Transfer Pump", type: "pump", guess: true,
+          note: "Same as Tank 5 \u2014 not on this screen. This is what feeds BT1 over in the " +
+                "blood plant." }
       ],
       edges: [
-        { from: "tw-cs", to: "tw-t1", stream: "water" },
+        { from: "tw-dp1", to: "tw-t1", stream: "water", dashed: true, label: "acid" },
+        { from: "tw-sm1", to: "tw-t1", stream: "water", dashed: true },
+        { from: "tw-t1", to: "tw-rc1", stream: "water", dashed: true },
         { from: "tw-t1", to: "tw-p3", stream: "water" },
-        { from: "tw-dp1", to: "tw-p3", stream: "water", dashed: true },
-        { from: "tw-dp2", to: "tw-p3", stream: "water", dashed: true },
-        { from: "tw-dp3", to: "tw-p3", stream: "water", dashed: true },
-        { from: "tw-dp4", to: "tw-p3", stream: "water", dashed: true },
-        { from: "tw-dp5", to: "tw-p3", stream: "water", dashed: true },
-        { from: "tw-p3", to: "tw-daf1", stream: "water" },
-        { from: "tw-p3", to: "tw-daf2", stream: "water" },
-        { from: "tw-sat1", to: "tw-daf1", stream: "water", dashed: true, label: "air" },
-        { from: "tw-sat2", to: "tw-daf2", stream: "water", dashed: true, label: "air" },
-        { from: "tw-daf1", to: "tw-t3", stream: "water" },
-        { from: "tw-daf2", to: "tw-t4", stream: "water" },
-        { from: "tw-daf1", to: "tw-t5", stream: "water", dashed: true, label: "sludge" },
-        { from: "tw-daf2", to: "tw-t5", stream: "water", dashed: true },
-        { from: "tw-t5", to: "tw-p2", stream: "water" },
-        { from: "tw-t3", to: "tw-sewer", stream: "water" },
-        { from: "tw-t4", to: "tw-sewer", stream: "water" },
-        { from: "tw-t3", to: "tw-hot", stream: "water", dashed: true }
+        { from: "tw-p3", to: "tw-v1", stream: "water" },
+        { from: "tw-v1", to: "tw-ft1", stream: "water" },
+        { from: "tw-ft1", to: "tw-daf", stream: "water" },
+        { from: "tw-dp2", to: "tw-daf", stream: "water", dashed: true, label: "coagulant" },
+        { from: "tw-dp3", to: "tw-daf", stream: "water", dashed: true, label: "polymer" },
+        { from: "tw-dp4", to: "tw-daf", stream: "water", dashed: true, label: "caustic" },
+        { from: "tw-ph2", to: "tw-daf", stream: "water", dashed: true },
+        { from: "tw-dp8", to: "tw-daf", stream: "water", dashed: true, label: "peroxide" },
+        { from: "tw-daf", to: "tw-p4", stream: "water" },
+        { from: "tw-p4", to: "tw-v2", stream: "water" },
+        { from: "tw-dp7", to: "tw-v2", stream: "water", dashed: true, label: "peroxide" },
+        { from: "tw-v2", to: "tw-t3", stream: "water" },
+        { from: "tw-v2", to: "tw-t4", stream: "water" },
+        { from: "tw-t3", to: "tw-p5", stream: "water" },
+        { from: "tw-p5", to: "tw-v7", stream: "water" },
+        { from: "tw-v7", to: "tw-outfall", stream: "water" },
+        { from: "tw-t4", to: "tw-p6", stream: "water" },
+        { from: "tw-p6", to: "tw-v8", stream: "water" },
+        { from: "tw-v8", to: "tw-outfall", stream: "water" },
+        { from: "tw-daf", to: "tw-t5", stream: "water", dashed: true, label: "sludge" },
+        { from: "tw-t5", to: "tw-p2", stream: "blood" }
       ]
     },
 
@@ -2334,14 +2819,107 @@ window.PLANT_MAP = {
       title: "Blood Plant",
       plant: "services",
       icon: "bloodplant",
-      summary: "Processes the blood and sludge from the Trade Waste plant.",
-      note: "This tile was showing red on your menu screen. I do not know yet whether that " +
-            "means stopped or in alarm, or what the plant actually produces.",
-      to: [],
+      summary: "Blood collects in Blood Tank BT1, where steam keeps it warm. The Blood " +
+               "Decanter Feed Pump sends it to the Alfa Blood Decanter, which splits it. " +
+               "The solids go out on the BLM conveyor cascade and join the Dryer Infeed run, " +
+               "so blood meal ends up in the same three dryers the meal uses. There is a CIP " +
+               "flush with its own flush water valves for cleaning.",
+      note: "Read off the Blood_Plant screen on 7 Oct 2026. The screen was showing " +
+            "\u201CBlood To Dryer 2-3 Selected\u201D, \u201CCheck Boiler Low Pressure\u201D " +
+            "and an active alarm \u201CV266 Fail To Close\u201D. What I am least sure of is the " +
+            "order of the BLM conveyor cascade (BLM105 to BLM108) and what BT1G and BT1SCW " +
+            "actually do \u2014 those need a walk-down. The M266 to M293 conveyors shown on the " +
+            "right of that screen are not part of the blood plant; they are the shared Dryer " +
+            "Infeed run, so they live in that area now.",
+      to: ["dryer-infeed"],
       nodes: [
-        { id: "bp1", label: "Blood Plant", type: "bloodplant", guess: true }
+        /* ---- the blood tank and its services ---- */
+        { id: "bp-bt1", tag: "BT1", label: "Blood Tank 1", type: "tank",
+          note: "Tall tank on the right of the screen. Steam heated through BTSOV, with " +
+                "flush water available for the CIP clean. The blood arriving here comes from " +
+                "the Trade Waste plant, pumped over by P2 off Tank 5.",
+          values: [{ k: "Level", v: "3492 (as shown on the screen)" }] },
+        { id: "bp-bt1rp", tag: "BT1RP", label: "BT1 Recirculation Pump", type: "pump",
+          note: "Sits on the right of BT1. I have drawn it as a recirculation loop back into " +
+                "the tank, which is the usual arrangement for keeping blood moving so it does " +
+                "not settle. Confirm that is what it does.",
+          guess: true },
+        { id: "bp-btsov", tag: "BTSOV", label: "Blood Tank Steam Valve", type: "valve",
+          note: "Keeps the blood in BT1 warm." },
+        { id: "bp-bt1g", tag: "BT1G", label: "BT1 Gate", type: "valve", guess: true,
+          note: "Drawn at the bottom of BT1 next to BT1SCW. I do not know what it lets out \u2014 " +
+                "settled solids, or the tank drain for the CIP flush. Needs a walk-down." },
+        { id: "bp-bt1scw", tag: "BT1SCW", label: "BT1 Screw Conveyor", type: "screw", guess: true,
+          note: "Sits under BT1G. Where it discharges to is not clear on the screen." },
+        { id: "bp-ssov", tag: "SSOV", label: "Steam Shut Off Valve", type: "valve" },
+        { id: "bp-spv", tag: "SPV", label: "Steam Pressure Valve", type: "valve",
+          note: "The steam supply to the blood plant comes in here." },
+        { id: "bp-ftwsov", tag: "FTWSOV", label: "Flush Water Shut Off Valve", type: "valve" },
+        { id: "bp-ftwsv", tag: "FTWSV", label: "Flush Water Valve", type: "valve",
+          note: "Part of the CIP Flush, which has its own button on the screen." },
+
+        /* ---- feed to the decanter ---- */
+        { id: "bp-bdfp", tag: "BDFP", label: "Blood Decanter Feed Pump", type: "pump",
+          values: [
+            { k: "Flow (BFM)", v: "3003" },
+            { k: "Pressure (BPT)", v: "154" }
+          ],
+          note: "BFM is the flow meter and BPT the pressure transmitter on this line." },
+        { id: "bp-dfsov", tag: "DFSOV", label: "Decanter Feed Shut Off Valve", type: "valve",
+          values: [{ k: "Temperature", v: "752 as shown \u2014 probably 75.2 \u00B0C" }],
+          note: "The red TEMPERATURE box sits under this valve. 752 with no decimal point is " +
+                "almost certainly 75.2 \u00B0C, but please confirm the units." },
+        { id: "bp-decanter", label: "Alfa Blood Decanter", type: "decanter",
+          note: "Horizontal decanter with its own drive. Splits the blood into solids for the " +
+                "dryers and liquid." },
+
+        /* ---- solids out of the decanter ---- */
+        { id: "bp-blm101", tag: "BLM101", label: "Decanter Outfeed Screw", type: "screw" },
+        { id: "bp-blm102", tag: "BLM102", label: "Blood Meal Bin", type: "bin",
+          note: "The yellow-labelled box under BLM101, with BLM103 and BLM104 working " +
+                "underneath it." },
+        { id: "bp-blm103", tag: "BLM103", label: "Bin Discharge Screw 1", type: "screw" },
+        { id: "bp-blm104", tag: "BLM104", label: "Bin Discharge Screw 2", type: "screw" },
+        { id: "bp-blm105", tag: "BLM105", label: "Blood Meal Conveyor", type: "screw",
+          note: "This is the one carrying the \u201CBlood To Dryer 2-3 Selected\u201D note on " +
+                "the screen, so the dryer choice is made around here." },
+        { id: "bp-blm106", tag: "BLM106", label: "Blood Meal Conveyor", type: "screw" },
+        { id: "bp-blm107", tag: "BLM107", label: "Blood Meal Conveyor", type: "screw" },
+        { id: "bp-bsv107", tag: "BSV107", label: "Diverter Valve", type: "valve" },
+        { id: "bp-blm108", tag: "BLM108", label: "Blood Meal Conveyor", type: "screw",
+          note: "This is where the blood plant hands over. BLM108 discharges onto M267 in the " +
+                "Dryer Infeed area, the same conveyor Line 1 and Line 2 feed." }
       ],
-      edges: []
+      edges: [
+        /* services into the tank */
+        { from: "bp-spv", to: "bp-ssov", stream: "steam" },
+        { from: "bp-ssov", to: "bp-btsov", stream: "steam" },
+        { from: "bp-btsov", to: "bp-bt1", stream: "steam", label: "heating" },
+        { from: "bp-ftwsov", to: "bp-ftwsv", stream: "water" },
+        { from: "bp-ftwsv", to: "bp-bt1", stream: "water", dashed: true, label: "CIP flush" },
+
+        /* tank round to the decanter */
+        { from: "bp-bt1", to: "bp-bt1rp", stream: "blood" },
+        { from: "bp-bt1rp", to: "bp-bt1", stream: "blood", dashed: true, back: true,
+          label: "recirculate" },
+        { from: "bp-bt1", to: "bp-bt1g", stream: "blood", dashed: true },
+        { from: "bp-bt1g", to: "bp-bt1scw", stream: "blood", dashed: true },
+        { from: "bp-bt1", to: "bp-bdfp", stream: "blood" },
+        { from: "bp-bdfp", to: "bp-dfsov", stream: "blood" },
+        { from: "bp-dfsov", to: "bp-decanter", stream: "blood" },
+
+        /* solids out */
+        { from: "bp-decanter", to: "bp-blm101", stream: "meal", label: "solids" },
+        { from: "bp-blm101", to: "bp-blm102", stream: "meal" },
+        { from: "bp-blm102", to: "bp-blm103", stream: "meal" },
+        { from: "bp-blm102", to: "bp-blm104", stream: "meal" },
+        { from: "bp-blm103", to: "bp-blm105", stream: "meal" },
+        { from: "bp-blm104", to: "bp-blm105", stream: "meal" },
+        { from: "bp-blm105", to: "bp-blm106", stream: "meal" },
+        { from: "bp-blm106", to: "bp-blm107", stream: "meal" },
+        { from: "bp-blm107", to: "bp-bsv107", stream: "meal" },
+        { from: "bp-bsv107", to: "bp-blm108", stream: "meal" }
+      ]
     },
 
     /* ======================================================= */
@@ -2353,62 +2931,237 @@ window.PLANT_MAP = {
       summary: "Two boilers supply steam to both cookers, the three dryers and the " +
                "evaporators. The two pressures sit on the main menu screen.",
       to: [],
+      note: "The Blood Plant screen shows its steam header in kPa, so the two numbers on the " +
+            "main menu are almost certainly kPa as well. That screen also carries a " +
+            "\u201CCheck Boiler Low Pressure\u201D warning, so there is a low pressure limit " +
+            "somewhere \u2014 worth finding out what it is set to.",
       nodes: [
         { id: "boiler1", label: "Boiler No.1", type: "boiler",
-          values: [{ k: "Steam pressure", v: "520" }] },
+          values: [{ k: "Steam pressure", v: "520 kPa" }] },
         { id: "boiler2", label: "Boiler No.2", type: "boiler",
-          values: [{ k: "Steam pressure", v: "500" }] }
+          values: [{ k: "Steam pressure", v: "500 kPa" }] },
+        { id: "steam-header", label: "Steam Header", type: "valve", guess: true,
+          values: [{ k: "Seen at the blood plant", v: "540 kPa" }],
+          note: "Both boilers feed one header that supplies the cookers, the dryers, the " +
+                "evaporators and the blood plant. Drawn from what the screens imply, not from " +
+                "a screen of its own." }
       ],
-      edges: []
+      edges: [
+        { from: "boiler1", to: "steam-header", stream: "steam" },
+        { from: "boiler2", to: "steam-header", stream: "steam" }
+      ]
     },
 
     /* ======================================================= */
     {
       id: "silos-milling",
-      title: "Silos & Milling",
+      title: "Bins, Shakers & Mills",
       plant: "shared",
       icon: "silo",
-      pending: true,
-      summary: "Finished meal screening, milling and storage.",
-      note: "Waiting on your photos of this area. Everything here is a placeholder from what " +
-            "you told me earlier.",
+      summary: "Dried meal lands in one of six bins, and each bin is a species. From the bins " +
+               "it goes to the three shakers, then the four mills. After milling the product " +
+               "splits by species: MBM goes into the silos, while ovine and bovine go " +
+               "straight to bagging and never see a silo.",
+      note: "Built from the SilosExitToMills and ShakersToSilos screens, then corrected by " +
+            "you. Two things now settled. First the ORDER: the screen is literally called " +
+            "ShakersToSilos and runs shakers at the top, mills in the middle, silos at the " +
+            "bottom \u2014 so it is bin, then shaker, then mill, then silo. That question is " +
+            "closed. Second, only MBM is stored in the silos; ovine and bovine go direct to " +
+            "bagging. This all runs on a SECOND, older control system with its own " +
+            "DRYERS / MILLING / LOAD-OUT menu, dated 2023 at 192.168.1.233. The conveyor M " +
+            "numbers on those screens were too small to read, so routing blocks stand in for " +
+            "them. What I still do not know is which of the six bins holds the MBM.",
       to: ["meal-bagging"],
       nodes: [
-        { id: "sm-shaker", label: "Shaker", type: "shaker", guess: true,
-          note: "How many shakers? Still to confirm." },
-        { id: "sm-mill", label: "Mill", type: "mill", guess: true,
-          note: "How many mills? Still to confirm." },
-        { id: "sm-silo1", label: "Silo 1", type: "silo" },
-        { id: "sm-silo2", label: "Silo 2", type: "silo" },
-        { id: "sm-silo3", label: "Silo 3 (idle)", type: "silo",
-          note: "Not in use at the moment." }
+        /* ---- the six species bins ---- */
+        { id: "sm-bin1", tag: "BIN No.1", label: "BOVINE-1", type: "bin",
+          values: [{ k: "Level", v: "46.7 %" }],
+          note: "The beef bin. The dryer outfeed screen was showing \u201CBEEF NOW\u201D " +
+                "against Dryer 1, feeding Bin 1 on Line 1." },
+        { id: "sm-bin2", tag: "BIN No.2", label: "OVINE-2", type: "bin",
+          values: [{ k: "Level", v: "54.9 %" }],
+          note: "The ovine bin \u2014 the Plant 1 product." },
+        { id: "sm-bin3", tag: "BIN No.3", label: "BUFFER-3", type: "bin",
+          values: [{ k: "Level", v: "34.8 %" }],
+          note: "Named BUFFER rather than a species, so this is probably the spare or " +
+                "overflow bin. What is it actually used for?" },
+        { id: "sm-bin4", tag: "BIN No.4", label: "CHICKEN-4 (not used)", type: "bin",
+          values: [{ k: "Level", v: "0.1 % \u2014 effectively empty" },
+                   { k: "Status", v: "No longer used \u2014 chicken is not processed now" }],
+          note: "You have told me chicken is no longer run, so this bin is out of use even " +
+                "though the screens still say CHICKEN and POULTRY in several places. Those " +
+                "labels are left over. Worth asking whether the bin has been reused for " +
+                "something else, or whether the screens should be relabelled \u2014 a stale " +
+                "species label on a live screen is exactly the kind of thing that causes a " +
+                "mix-up." },
+        { id: "sm-bin5", tag: "BIN No.5", label: "WOOL-5", type: "bin",
+          note: "Labelled WOOL. I do not know what that product is \u2014 please explain, " +
+                "because it is not something you have mentioned before." },
+        { id: "sm-bin6", tag: "BIN No.6", label: "WOOL-6", type: "bin",
+          note: "The second WOOL bin. Why two?" },
+
+        /* ---- routing ---- */
+        { id: "sm-route", label: "Bin Discharge Routing", type: "valve", guess: true,
+          values: [
+            { k: "Seen on the screen", v: "Bin 4 \u2192 Shaker 3" },
+            { k: "", v: "Bin 3 \u2192 Shaker 1" },
+            { k: "", v: "Bin 1 \u2192 Shakers 1 and 2" },
+            { k: "Also showing", v: "\u201CGoing to Silo No.1\u201D" }
+          ],
+          note: "Not one machine \u2014 this stands for the conveyor network under the bins. " +
+                "The screen showed three different bins feeding three different shakers at " +
+                "the same time, so any bin can clearly reach any shaker. The actual conveyors " +
+                "need a closer photo." },
+
+        /* ---- three shakers ---- */
+        { id: "sm-shaker1", label: "Shaker 1", type: "shaker" },
+        { id: "sm-shaker2", label: "Shaker 2", type: "shaker" },
+        { id: "sm-shaker3", label: "Shaker 3", type: "shaker" },
+
+        /* ---- four mills ---- */
+        { id: "sm-millroute", label: "Mill Feed Routing", type: "valve", guess: true,
+          note: "Same again \u2014 the conveyors between the shakers and the mills." },
+        { id: "sm-mill1", label: "Mill 1", type: "mill",
+          values: [{ k: "Amps", v: "0 A \u2014 stopped on both photos" }],
+          note: "Stopped both times I have seen the screen. Is it a spare, or out of service?" },
+        { id: "sm-mill2", label: "Mill 2", type: "mill",
+          values: [{ k: "Amps", v: "29 \u2013 34 A \u2014 running" }] },
+        { id: "sm-mill3", label: "Mill 3", type: "mill",
+          values: [{ k: "Amps", v: "0 A \u2014 stopped on both photos" }],
+          note: "Stopped both times. Spare, or out of service?" },
+        { id: "sm-mill4", label: "Mill 4", type: "mill",
+          values: [{ k: "Amps", v: "70 \u2013 80 A \u2014 running hard" }],
+          note: "On two different photos Mill 4 read 70 A and 80 A while Mill 2 sat on " +
+                "29 \u2013 34 A, and Mills 1 and 3 were stopped both times. So Mill 4 looks " +
+                "like the workhorse. What is the normal range, and what is too high?" },
+
+        /* ---- silos ---- */
+        /* ---- after the mills the product splits by species ---- */
+        { id: "sm-productroute", label: "Product Routing \u2014 Silo or Bagging", type: "valve",
+          guess: true,
+          values: [
+            { k: "MBM", v: "to the silos" },
+            { k: "Ovine and bovine", v: "straight to bagging, no silo" }
+          ],
+          note: "This is the split you corrected me on. Only MBM is stored in a silo; ovine " +
+                "and bovine go direct to bagging. The conveyors that actually do the " +
+                "switching are in the unreadable middle of the milling screen, so this block " +
+                "stands in for them. How is the choice made \u2014 a diverter valve, or a " +
+                "different conveyor route?" },
+
+        /* ---- three silos, MBM only ---- */
+        { id: "sm-silo1", label: "Silo 1", type: "silo",
+          values: [{ k: "Level", v: "51.0 %" }],
+          note: "MBM only." },
+        { id: "sm-silo2", label: "Silo 2", type: "silo",
+          values: [{ k: "Level", v: "44.3 %" }],
+          note: "MBM only." },
+        { id: "sm-silo3", label: "Silo 3", type: "silo",
+          values: [
+            { k: "Level", v: "82.4 %, and 92.4 % on the load-out screen" },
+            { k: "Automatic cut-out", v: "feed stops at 90 %, restarts below 90 %" }
+          ],
+          note: "The ShakersToSilos screen carries a note in red: \u201CFeed to Silo No.3 " +
+                "will stop at 90 % and restart below 90 %\u201D. So Silo 3 fills itself and " +
+                "holds off automatically. All three silos are in use \u2014 I had been told " +
+                "earlier that only two were, so that has changed or I misheard." }
       ],
       edges: [
-        { from: "sm-shaker", to: "sm-mill", stream: "meal", label: "oversize" },
-        { from: "sm-mill", to: "sm-shaker", stream: "meal", dashed: true, back: true,
-          label: "back to screen" },
-        { from: "sm-shaker", to: "sm-silo1", stream: "meal", label: "fines" },
-        { from: "sm-shaker", to: "sm-silo2", stream: "meal" },
-        { from: "sm-shaker", to: "sm-silo3", stream: "meal", dashed: true }
+        { from: "sm-bin1", to: "sm-route", stream: "meal" },
+        { from: "sm-bin2", to: "sm-route", stream: "meal" },
+        { from: "sm-bin3", to: "sm-route", stream: "meal" },
+        { from: "sm-bin4", to: "sm-route", stream: "meal" },
+        { from: "sm-bin5", to: "sm-route", stream: "meal" },
+        { from: "sm-bin6", to: "sm-route", stream: "meal" },
+
+        { from: "sm-route", to: "sm-shaker1", stream: "meal" },
+        { from: "sm-route", to: "sm-shaker2", stream: "meal" },
+        { from: "sm-route", to: "sm-shaker3", stream: "meal" },
+
+        { from: "sm-shaker1", to: "sm-millroute", stream: "meal" },
+        { from: "sm-shaker2", to: "sm-millroute", stream: "meal" },
+        { from: "sm-shaker3", to: "sm-millroute", stream: "meal" },
+
+        { from: "sm-millroute", to: "sm-mill1", stream: "meal" },
+        { from: "sm-millroute", to: "sm-mill2", stream: "meal" },
+        { from: "sm-millroute", to: "sm-mill3", stream: "meal" },
+        { from: "sm-millroute", to: "sm-mill4", stream: "meal" },
+
+        { from: "sm-mill1", to: "sm-productroute", stream: "meal" },
+        { from: "sm-mill2", to: "sm-productroute", stream: "meal" },
+        { from: "sm-mill3", to: "sm-productroute", stream: "meal" },
+        { from: "sm-mill4", to: "sm-productroute", stream: "meal" },
+
+        { from: "sm-productroute", to: "sm-silo1", stream: "meal", label: "MBM" },
+        { from: "sm-productroute", to: "sm-silo2", stream: "meal" },
+        { from: "sm-productroute", to: "sm-silo3", stream: "meal" }
       ]
     },
 
     /* ======================================================= */
     {
       id: "meal-bagging",
-      title: "Meal Bagging",
+      title: "Load-Out & Bagging",
       plant: "shared",
       icon: "bagging",
-      pending: true,
-      summary: "Bagging and bulk loadout of the finished meal.",
-      note: "No photo of this screen yet.",
+      summary: "Two ways product leaves the site. MBM comes out of a silo into a shipping " +
+               "container, with the operator working through a container inspection " +
+               "checklist on screen before loading starts. Ovine and bovine skip the silos " +
+               "and go straight to bagging.",
+      note: "Built from the LOAD-OUT screen on the older control system. The operator picks " +
+            "a silo and a container, and the screen shows the tonnes and the product being " +
+            "loaded, with Start, Auto Stop and Quick Stop buttons for the silo outfeed. The " +
+            "screen was reading \u201CSilo 3: load-out to a container\u201D, Container 2 " +
+            "selected, 21.0 tonnes. Note the product said POULTRY, which you have told me is " +
+            "no longer run, so either that photo is old or the label is stale. There is an " +
+            "eight-point container check built into the screen \u2014 I have written it up as " +
+            "its own procedure under Support jobs.",
       to: [],
       nodes: [
-        { id: "mb-mag", label: "Magnet / Metal Check", type: "metaldetector", guess: true },
-        { id: "mb-bag", label: "Bagging Line", type: "bagging", guess: true }
+        { id: "mb-silo-sel", label: "Silo Selection", type: "valve",
+          values: [
+            { k: "When photographed", v: "Silo 3 selected" },
+            { k: "Controls", v: "Start silo outfeed, Auto Stop, Quick Stop" }
+          ],
+          note: "The operator chooses which silo empties. What is the difference between " +
+                "Auto Stop and Quick Stop?" },
+        { id: "mb-silo-out", label: "Silo Outfeed", type: "screw",
+          note: "Carries the MBM from the selected silo down to the container." },
+        { id: "mb-container-sel", label: "Container Selection", type: "valve",
+          values: [
+            { k: "When photographed", v: "Container 2 selected" },
+            { k: "Load shown", v: "21.0 tonnes" }
+          ],
+          note: "The screen also had a red warning about a finish-down conveyor not being in " +
+                "use. I could not read it properly \u2014 what does that message say?" },
+        { id: "mb-check", label: "Container Inspection Checklist", type: "metaldetector",
+          values: [{ k: "Checks", v: "8, each signed off on screen" }],
+          note: "Eight checks the operator ticks off on the screen before loading: correct " +
+                "container, correct seal, seal damage, floor condition, foreign bodies, swept " +
+                "out, labelling, and one more I could not read. Written up as the Container " +
+                "Load-Out procedure." },
+        { id: "mb-container", label: "Shipping Container", type: "bagging",
+          note: "Loaded by tipper truck and forklift, going by the picture on the screen." },
+        { id: "mb-bag", label: "Bagging Line", type: "bagging", guess: true,
+          note: "Where ovine and bovine go instead of a silo. Not on any screen I have seen " +
+                "yet \u2014 is bagging controlled from a panel, or is it all manual?" },
+        { id: "mb-mag", label: "Magnet / Metal Check", type: "metaldetector", guess: true,
+          note: "Is there a magnet or metal detector before the bagger or the container? " +
+                "Normally this is the last chance to catch metal before it reaches a customer." },
+        { id: "mb-weigh", label: "Weighbridge", type: "valve", guess: true,
+          note: "The screen shows tonnes against the load, so something is weighing it. Is " +
+                "that a weighbridge, or load cells on the silo?" }
       ],
       edges: [
-        { from: "mb-mag", to: "mb-bag", stream: "meal" }
+        { from: "mb-silo-sel", to: "mb-silo-out", stream: "meal" },
+        { from: "mb-check", to: "mb-container-sel", stream: "meal", dashed: true,
+          label: "must pass first" },
+        { from: "mb-container-sel", to: "mb-container", stream: "meal" },
+        { from: "mb-silo-out", to: "mb-mag", stream: "meal", dashed: true },
+        { from: "mb-mag", to: "mb-container", stream: "meal", label: "MBM" },
+        { from: "mb-mag", to: "mb-bag", stream: "meal", label: "ovine / bovine" },
+        { from: "mb-container", to: "mb-weigh", stream: "meal", dashed: true },
+        { from: "mb-bag", to: "mb-weigh", stream: "meal", dashed: true }
       ]
     }
 
@@ -3169,11 +3922,12 @@ window.PLANT_PROCEDURES = [
     status: "draft",
     duration: "45 to 90 minutes",
     who: "Supervisor signs off every changeover",
-    summary: "How to switch the plant from one species to another without cross-contaminating. This page protects your customer approvals, so it must be followed exactly and signed.",
+    summary: "How to switch the plant from one species to another without cross-contaminating. This page protects your customer approvals, so it must be followed exactly and signed. On this plant the segregation is done by BIN: Bin 1 is BOVINE, Bin 2 is OVINE, Bin 3 is BUFFER, Bin 4 is CHICKEN, Bins 5 and 6 are WOOL. The dryer outfeed page shows which bin and which line each dryer is feeding, and the species it is running.",
     ppe: ["Hard hat", "Safety glasses", "Hearing protection", "Steel cap boots", "Gloves", "Hi-vis"],
     warnings: [
       { type: "danger", title: "Lock out before cleaning inside anything", text: "Every machine opened for inspection or cleaning must be isolated, locked, tagged and proven dead." },
-      { type: "warn", title: "No sign-off, no changeover", text: "The new run does not start until the supervisor has inspected and signed the changeover record." }
+      { type: "warn", title: "No sign-off, no changeover", text: "The new run does not start until the supervisor has inspected and signed the changeover record." },
+      { type: "warn", title: "One conveyor run serves every dryer", text: "M267 and the reversible M266 carry Line 1, Line 2 and the blood meal. Whatever species ran last is still in there, so that run has to be clear before the next species goes through it." }
     ],
     steps: [
       {
@@ -3208,7 +3962,21 @@ window.PLANT_PROCEDURES = [
         checks: ["Flush quantity agreed", "Flush material sent to the correct destination", "Flush recorded"]
       },
       {
-        title: "Change over the labels, bins and paperwork",
+        title: "Switch the dryer outfeed to the right bin",
+        detail: "This is the step that actually keeps the species apart. On the dryer outfeed page, set each running dryer to feed the bin for the new species: Bin 1 BOVINE, Bin 2 OVINE, Bin 3 BUFFER, Bin 4 CHICKEN, Bins 5 and 6 WOOL. Check the line as well as the bin — Line 1 and Line 2 are separate.",
+        who: "Operator",
+        time: "5 min",
+        warning: "If a dryer is still pointed at the old bin, the new species goes into the wrong bin and both bins are then suspect. Read the bin number and the species back off the screen before you start feeding.",
+        checks: [
+          "Correct bin selected for every running dryer",
+          "Line 1 and Line 2 both checked",
+          "The species shown on the dryer outfeed page matches what you are actually running",
+          "Previous species fully out of the shared conveyor run before the change",
+          "Bin levels noted before and after"
+        ]
+      },
+      {
+        title: "Change over the labels, bin signs and paperwork",
         detail: "Swap the bin signs, bag labels, run sheets and sampling labels to the new species before the first product is made.",
         who: "Operator",
         checks: ["Bin and tank signs changed", "Old labels removed from the area", "New run sheet started", "Correct recipe selected"]
@@ -3223,7 +3991,110 @@ window.PLANT_PROCEDURES = [
   },
 
   /* ===========================================================
-     8. SUPPORT — ODOUR CONTROL
+     8. SUPPORT — CONTAINER LOAD-OUT
+     Taken from the checklist built into your LOAD-OUT screen.
+     =========================================================== */
+  {
+    id: "support-loadout",
+    category: "support",
+    icon: "\u{1F4E6}",
+    title: "Container Load-Out",
+    subtitle: "Emptying a silo into a shipping container",
+    status: "draft",
+    duration: "About 60 to 90 minutes a container",
+    who: "Load-Out Operator, supervisor signs the container off",
+    summary: "How MBM goes from a silo into a shipping container. The eight checks below are the ones already built into your LOAD-OUT screen, so this page should be very close to what you already do. Read the wording off the screen and correct mine where it differs.",
+    ppe: ["Hard hat", "Safety glasses", "Hearing protection", "Dust mask", "Steel cap boots", "Gloves", "Hi-vis"],
+    warnings: [
+      { type: "danger", title: "Never enter a container that is being loaded", text: "Meal comes in fast and buries anything in the way. Inspect it empty, get out, then load." },
+      { type: "danger", title: "Forklifts and trucks moving", text: "Agree where the forklift works and where people walk before loading starts. Stay out of the truck's blind spots." },
+      { type: "warn", title: "A rejected container is cheaper than a rejected load", text: "If the container fails any of the checks, reject it. Do not load into a container you are not happy with." }
+    ],
+    steps: [
+      {
+        title: "Check the silo and the product before anything else",
+        detail: "Confirm which silo you are emptying and what is actually in it. Only MBM is stored in the silos, so if the screen says something else, stop and ask.",
+        who: "Operator",
+        time: "5 min",
+        warning: "The screens still carry some old species labels. Trust the run records, not just the word on the screen.",
+        checks: ["Correct silo selected on the screen", "Product in that silo confirmed against the run records", "Silo level enough for the load", "Tonnes required for this container known"]
+      },
+      {
+        title: "Check the correct container has been selected",
+        detail: "Match the container on the screen to the container actually backed up to the loading point. Check the container number on the box against your paperwork.",
+        who: "Operator",
+        time: "5 min",
+        checks: ["Container number on the box matches the paperwork", "Correct container selected on the screen", "Truck parked and brakes applied", "Driver out of the cab and clear"]
+      },
+      {
+        title: "Check the correct seal has been provided",
+        detail: "The seal number has to match the paperwork before you start, not after.",
+        who: "Operator",
+        checks: ["Seal supplied", "Seal number recorded against this container", "Seal number matches the paperwork"]
+      },
+      {
+        title: "Check the container for damage",
+        detail: "Walk around it. Look at the roof, the walls, the door seals and the corners. If it is damaged, it gets rejected.",
+        who: "Operator",
+        warning: "A damaged container means water gets in and the whole load is ruined. Reject it.",
+        checks: ["No holes, splits or rust-through", "Roof sound", "Door seals good", "No previous repairs that look suspect"]
+      },
+      {
+        title: "Check the floor",
+        detail: "The floor has to be sound and clean. If it is not, the container gets rejected.",
+        who: "Operator",
+        checks: ["Floor sound, no soft or broken boards", "Floor clean and dry", "No oil, chemical or strong smell"]
+      },
+      {
+        title: "Inspect for foreign bodies and clear them out",
+        detail: "Look for anything left behind from the last load: dunnage, nails, bags, liner, strapping, bits of timber. Remove it all, then look again.",
+        who: "Operator",
+        warning: "Anything left in the container ends up in your customer's product and comes back as a complaint.",
+        checks: ["All foreign bodies removed", "Container inspected a second time after clearing", "Anything found written down"]
+      },
+      {
+        title: "Sweep it out",
+        detail: "The container must be swept clean before any product goes in.",
+        who: "Operator",
+        checks: ["Swept out", "No residue from the previous load", "Sweepings disposed of, not left in the doorway"]
+      },
+      {
+        title: "Label the container",
+        detail: "The container has to be labelled with the product and the silo it came from before it leaves.",
+        who: "Operator",
+        checks: ["Label shows the product", "Label shows the silo", "Label shows the date and batch", "Label fixed where it will not come off"]
+      },
+      {
+        title: "Start the silo outfeed and watch it",
+        detail: "Start the outfeed from the screen. Stay with it. Watch the tonnes climbing and the fill in the container.",
+        who: "Operator",
+        time: "30-60 min",
+        checks: ["Outfeed started from the screen", "Tonnes counting up as expected", "No spillage at the loading point", "Dust under control", "Nobody near or inside the container"]
+      },
+      {
+        title: "Stop at the target weight",
+        detail: "Stop on the tonnes the paperwork calls for. There is an Auto Stop and a Quick Stop on the screen — know which one you are using and why.",
+        who: "Operator",
+        checks: ["Stopped at the target tonnes", "Final weight recorded", "Conveyors run empty before stopping"]
+      },
+      {
+        title: "Seal it, record it and release it",
+        detail: "Close the doors, fit the seal, write the seal number down, and get the supervisor to sign the container off.",
+        who: "Operator + Supervisor",
+        time: "10 min",
+        checks: ["Doors closed properly", "Seal fitted", "Seal number recorded on the paperwork", "Final weight and silo recorded", "Supervisor signed the container off", "Driver given the paperwork"]
+      },
+      {
+        title: "Clean up the loading point",
+        detail: "Sweep or hose the spill area, clear the walkways, and leave it ready for the next container.",
+        who: "Operator",
+        checks: ["Spill area clean", "Walkways clear", "Loading point left tidy", "Log filled in"]
+      }
+    ]
+  },
+
+  /* ===========================================================
+     9. SUPPORT — ODOUR CONTROL
      =========================================================== */
   {
     id: "support-odour",
@@ -4106,11 +4977,11 @@ var Plant = (function () {
 
   var STREAM_COLORS = {
     control: {
-      raw: "#2ce08c", meal: "#9bd84f", tallow: "#ffb74d",
+      raw: "#2ce08c", meal: "#9bd84f", tallow: "#ffb74d", blood: "#ff7a95",
       water: "#4fc3f7", vapour: "#b794f6", steam: "#ff6b60"
     },
     industrial: {
-      raw: "#0b7a3f", meal: "#3f6212", tallow: "#a35a00",
+      raw: "#0b7a3f", meal: "#3f6212", tallow: "#a35a00", blood: "#9f1239",
       water: "#11399e", vapour: "#5b2bb8", steam: "#b3160f"
     }
   };
@@ -4177,6 +5048,7 @@ var Plant = (function () {
     "line-mbm":           "mill",
     "line-tallow":        "tank",
     "support-changeover": "refresh",
+    "support-loadout":    "bagging",
     "support-odour":      "fan"
   };
 
@@ -4782,7 +5654,7 @@ var Plant = (function () {
 
   /* ---------- layout engine ---------- */
 
-  function layoutGraph(nodes, edges, W, H, gapX, gapY, maxCols) {
+  function layoutGraph(nodes, edges, W, H, gapX, gapY, maxCols, maxRows) {
     var idMap = {}, depth = {}, row = {};
     nodes = nodes || [];
     nodes.forEach(function (n) { idMap[n.id] = n; depth[n.id] = 0; });
@@ -4826,25 +5698,38 @@ var Plant = (function () {
       list.forEach(function (n, i) { row[n.id] = i; });
     });
 
-    var totalCols = keys.length || 1;
+    /* A column with a lot of machines in it (think ten dosing pumps all
+       feeding one DAF) would otherwise make one very tall thin strip.
+       So a tall column gets broken into side-by-side sub-columns. The
+       process order, left to right, is kept either way. */
+    var tallest = 1;
+    keys.forEach(function (k) { tallest = Math.max(tallest, cols[k].length); });
+
+    var rowCap = Math.max(1, maxRows || tallest);
+    var slots = [];
+    keys.forEach(function (k) {
+      var list = cols[k];
+      for (var i = 0; i < list.length; i += rowCap) slots.push(list.slice(i, i + rowCap));
+    });
+
+    var totalCols = slots.length || 1;
     var mc = Math.max(1, Math.min(maxCols || totalCols, totalCols));
 
     var bands = [];
-    for (var c = 0; c < totalCols; c += mc) bands.push(keys.slice(c, c + mc));
+    for (var c = 0; c < totalCols; c += mc) bands.push(slots.slice(c, c + mc));
 
     var padX = 34, padY = 30;
     var bandGap = gapY + 34;
     var y = padY, bottom = padY;
     var pos = {}, bandOf = {};
 
-    bands.forEach(function (bandKeys, bi) {
-      var maxRows = 1;
-      bandKeys.forEach(function (k) { maxRows = Math.max(maxRows, cols[k].length); });
-      var bandH = maxRows * H + (maxRows - 1) * gapY;
+    bands.forEach(function (bandSlots, bi) {
+      var rows = 1;
+      bandSlots.forEach(function (s) { rows = Math.max(rows, s.length); });
+      var bandH = rows * H + (rows - 1) * gapY;
       var ltr = (bi % 2 === 0);
 
-      bandKeys.forEach(function (k, j) {
-        var list = cols[k];
+      bandSlots.forEach(function (list, j) {
         var slot = ltr ? j : (mc - 1 - j);
         var cx = padX + slot * (W + gapX) + W / 2;
         var colH = list.length * H + (list.length - 1) * gapY;
@@ -4866,20 +5751,39 @@ var Plant = (function () {
       width: padX * 2 + used * W + (used - 1) * gapX,
       height: bottom + padY,
       totalCols: totalCols,
+      tallest: tallest,
       bands: bands.length
     };
   }
 
-  /* try every fold width and keep the one that fills the stage best */
+  /* Try every fold width and every column height, and keep whichever
+     combination fills the stage biggest. This is what means you should
+     never have to zoom. */
   function fitLayout(nodes, edges, W, H, gapX, gapY, stageW, stageH, maxScale) {
-    var probe = layoutGraph(nodes, edges, W, H, gapX, gapY, 9999);
-    var cap = Math.max(1, Math.min(probe.totalCols, 28));
+    var probe = layoutGraph(nodes, edges, W, H, gapX, gapY, 9999, 9999);
+    var rowCap = Math.max(1, Math.min(probe.tallest, 9));
     var best = null;
-    for (var mc = cap; mc >= 1; mc--) {
-      var L = layoutGraph(nodes, edges, W, H, gapX, gapY, mc);
-      var s = Math.min(stageW / L.width, stageH / L.height);
-      if (s > maxScale) s = maxScale;
-      if (!best || s > best.scale + 0.004) best = { L: L, scale: s, mc: mc };
+
+    /* Work from least-split to most-split, and only accept more
+       splitting if it buys a real improvement. Machines that run in
+       parallel then stay stacked in one column, which is far easier
+       to follow than having them broken up side by side. */
+    for (var mr = rowCap; mr >= 1; mr--) {
+      var wide = layoutGraph(nodes, edges, W, H, gapX, gapY, 9999, mr);
+      var colCap = Math.max(1, Math.min(wide.totalCols, 30));
+      for (var mc = colCap; mc >= 1; mc--) {
+        var L = layoutGraph(nodes, edges, W, H, gapX, gapY, mc, mr);
+        var s = Math.min(stageW / L.width, stageH / L.height);
+        if (s > maxScale) s = maxScale;
+
+        if (!best) { best = { L: L, scale: s, mc: mc, mr: mr }; continue; }
+
+        /* same amount of splitting: take any gain.
+           more splitting than the best so far: it has to earn it. */
+        var sameSplit = (mr === best.mr);
+        var needed = sameSplit ? best.scale + 0.004 : best.scale * 1.12;
+        if (s > needed) best = { L: L, scale: s, mc: mc, mr: mr };
+      }
     }
     return best;
   }
