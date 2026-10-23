@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Plant Guide">
 <title>Plant Guide — Startup, Shutdown, Lines &amp; Troubleshooting</title>
-<!-- Single-file copy. Built by build-one-file.js on 2026-10-08. Edit the folder, not this file. -->
+<!-- Single-file copy. Built by build-one-file.ps1 on 2026-10-23. Edit the folder, not this file. -->
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPHRpdGxlPlBsYW50IEd1aWRlPC90aXRsZT4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0iIzBkMTcxNCIvPgogIDxyZWN0IHg9IjQwIiB5PSI0MCIgd2lkdGg9IjQzMiIgaGVpZ2h0PSI0MzIiIHJ4PSI3MiIgZmlsbD0iIzEyMjAxYiIvPgogIDxnIHN0cm9rZT0iIzFjMzQyYyIgc3Ryb2tlLXdpZHRoPSIxLjYiPgogICAgPHBhdGggZD0iTTEyOCA3MlY0NDBNMTc2IDcyVjQ0ME0yMjQgNzJWNDQwTTI3MiA3MlY0NDBNMzIwIDcyVjQ0ME0zNjggNzJWNDQwTTQxNiA3MlY0NDAiLz4KICAgIDxwYXRoIGQ9Ik03MiAxMjhINDQwTTcyIDE3Nkg0NDBNNzIgMjI0SDQ0ME03MiAyNzJINDQwTTcyIDMyMEg0NDBNNzIgMzY4SDQ0ME03MiA0MTZINDQwIi8+CiAgPC9nPgogIDxnIGZpbGw9IiMyY2UwOGMiPgogICAgPHJlY3QgeD0iOTYiICB5PSIzNzgiIHdpZHRoPSIzMjAiIGhlaWdodD0iMjIiIHJ4PSIxMCIvPgogICAgPHJlY3QgeD0iMTA0IiB5PSIyODgiIHdpZHRoPSI1OCIgIGhlaWdodD0iOTQiICByeD0iMTQiLz4KICAgIDxyZWN0IHg9IjE4MCIgeT0iMjQ4IiB3aWR0aD0iNTgiICBoZWlnaHQ9IjEzNCIgcng9IjE0Ii8+CiAgICA8cmVjdCB4PSIyNTYiIHk9IjIwOCIgd2lkdGg9IjU4IiAgaGVpZ2h0PSIxNzQiIHJ4PSIxNCIvPgogICAgPHJlY3QgeD0iMzMyIiB5PSIyNzIiIHdpZHRoPSI1OCIgIGhlaWdodD0iMTEwIiByeD0iMTQiLz4KICAgIDxyZWN0IHg9IjI3MiIgeT0iMTI4IiB3aWR0aD0iMzAiICBoZWlnaHQ9Ijg0IiAgcng9IjgiLz4KICA8L2c+CiAgPGNpcmNsZSBjeD0iMzQ4IiBjeT0iMTcwIiByPSIyNiIgZmlsbD0iI2ZmYjc0ZCIvPgo8L3N2Zz4K" type="image/svg+xml">
 <style>
 /* =============================================================
@@ -1615,9 +1615,9 @@ textarea.ans { resize: vertical; min-height: 56px; }
 /* The version that is actually installed on this device.
    Bump it with:  node tools/bump-version.js  (keeps version.json and sw.js in step) */
 window.PLANT_VERSION = {
-  version: "13",
-  built: "2026-10-08",
-  notes: "Map redesigned: machines drawn as real shapes, conveyors folded into the arrows, new Simple view. New step builder for writing the real startup and shutdown with photos."
+  version: "14",
+  built: "2026-10-23",
+  notes: "New Plant Start section with the seven real, signed-off start-up procedures (Lamb, Beef, Separator, Blood, Dryers, Hydrolyser, Milling), typed from the ATP Quality Management System sheets."
 };
 </script>
 
@@ -4313,6 +4313,156 @@ window.PLANT_PROCEDURES = [
         checks: ["Treatment still running during cool-down", "Plant confirmed cold and clear before stopping fans", "Stop time recorded"]
       }
     ]
+  },
+
+  /* ===========================================================
+     PLANT START — the real, signed-off start-up procedures.
+     -----------------------------------------------------------
+     Typed word for word from the ATP Quality Management System
+     sheets the operator photographed (category "plant-start").
+     Version 1. Steps renumbered 1,2,3... (some sheets skipped
+     numbers; the missing steps are not on the sheets yet).
+     Each procedure's `doc` line carries the controlled-document
+     details so the page shows them, like the paper does.
+     =========================================================== */
+
+  {
+    id: "start-lamb",
+    category: "plant-start",
+    icon: "\u{1F411}",
+    title: "Lamb Raw Material Start Up",
+    subtitle: "Plant 1 raw material, ovine",
+    status: "approved",
+    doc: "Version 1 \u00B7 issued 25.11.2025 \u00B7 valid on 5/10/2026. Check the company intranet before use to ensure it is still current.",
+    summary: "The official Plant 1 (lamb) raw material start-up. Some step numbers were missing from the sheet; those steps are not here yet.",
+    steps: [
+      { title: "Make sure boilers are running, and the steam pressure is 700+ kPa" },
+      { title: "Press Auto Start on Plant 1 Raw material page" },
+      { title: "Start Lamb decanter" },
+      { title: "Make sure cooker is running, open the manual steam valve" },
+      { title: "Wait for the cooker's temperature to reach 85+ C before discharging" }
+    ]
+  },
+
+  {
+    id: "start-beef",
+    category: "plant-start",
+    icon: "\u{1F404}",
+    title: "Beef Raw Material Start Up",
+    subtitle: "Plant 2 raw material, beef",
+    status: "approved",
+    doc: "Version 1 \u00B7 issued 17.12.2025 \u00B7 valid on 5/10/2026. Check the company intranet before use to ensure it is still current.",
+    summary: "The official Plant 2 (beef) raw material start-up. Some step numbers were missing from the sheet; those steps are not here yet.",
+    steps: [
+      { title: "Make sure boilers are running, and the steam pressure is 700+ kPa" },
+      { title: "Press Auto Start on Plant 2 Raw material page" },
+      { title: "Start beef mincer manually" },
+      { title: "Start Beef decanter" },
+      { title: "Make sure cookers are running, open the manual steam valve" },
+      { title: "Wait for the cookers' temperatures to reach 85+ C before discharging" }
+    ]
+  },
+
+  {
+    id: "start-separator",
+    category: "plant-start",
+    icon: "\u{1F300}",
+    title: "Separator Start Up",
+    subtitle: "Tallow separator",
+    status: "approved",
+    doc: "Version 1 \u00B7 issued 17.12.2025 \u00B7 valid on 5/10/2026. Check the company intranet before use to ensure it is still current.",
+    steps: [
+      { title: "Make sure boilers are running, and the steam pressure is 700+ kPa" },
+      { title: "Make sure main steam valve and 95C system valve from main header are both open" },
+      { title: "Turn the 95C system ON. The light should turn green, wait for temps to reach 95C" },
+      { title: "Open the safety hot water valve behind the separator" },
+      { title: "Reset any alarms on alarm page before pressing start" },
+      { title: "Press START and wait for the RPMs to reach 5000" },
+      { title: "Make sure valve under the feed tank is open and the line is unblocked" },
+      { title: "Check the feed tank temp is 90+ C. Press PRODUCTION on HMI screen" },
+      { title: "Check the flow rate, check oil is physically coming out from Sep discharge. Hear for the bowl closing shooting sound" },
+      { title: "Make sure fat trap outfeed pump is ON" }
+    ]
+  },
+
+  {
+    id: "start-blood",
+    category: "plant-start",
+    icon: "\u{1FA78}",
+    title: "Blood Start Up",
+    subtitle: "Blood plant and blood decanter",
+    status: "approved",
+    doc: "Version 1 \u00B7 issued 17.12.2025 \u00B7 valid on 5/10/2026. Check the company intranet before use to ensure it is still current.",
+    steps: [
+      { title: "Make sure both boilers are running, and we have enough steam pressure 700+ kPa" },
+      { title: "On Blood Plant page, check pump and everything else is in AUTO" },
+      { title: "Press \"Blood plant Enable\" for 5 seconds. The top of the page should say \"Plant Enabled\"" },
+      { title: "Check the Alfa Laval HMI in switch room for any alarms or faults",
+        detail: "If the decanter has not started automatically, check the alarm page, reset all alarms and manually press Start for 5 seconds on the HMI screen, and wait for the decanter to reach 3300+ RPM. When the screen says Production it is ready to start." },
+      { title: "On Plant HMI, check flow and temperature readings",
+        detail: "Temperature should be 85+ C and flow should be consistent." },
+      { title: "After 5 mins, physically check all screws running and make sure dry blood is coming out of the blood decanter" }
+    ]
+  },
+
+  {
+    id: "start-dryers",
+    category: "plant-start",
+    icon: "\u{1F525}",
+    title: "Dryers Start Up",
+    subtitle: "Dryer infeed, dryers and outfeed",
+    status: "approved",
+    doc: "Version 1 \u00B7 issued 17.12.2025 \u00B7 valid on 5/10/2026. Check the company intranet before use to ensure it is still current.",
+    summary: "The official dryers start-up. Some step numbers were missing from the sheet; those steps are not here yet.",
+    steps: [
+      { title: "Touch Dryer motor icon and press AUTO" },
+      { title: "Press Dryer Infeed Auto Start on Dryer INFEED page" },
+      { title: "Check all the screws, make sure all infeed screws are running physically" },
+      { title: "Make sure all Screws and Gates on DRYER INFEED page are in AUTO" },
+      { title: "Make sure correct dryer has been selected for correct plant",
+        detail: "E.g. Dryer 1 for ovine and Dryer 2 & 3 for beef (under normal circumstances)." },
+      { title: "Make sure outfeed screws are in AUTO mode (can be checked from DRYER OUTFEED page)" },
+      { title: "Start Dryer from the milling page as well",
+        detail: "Wait for the Amps and Temp to go up to Set value and check if outfeed screw has started. Physically check the product coming out for any abnormality and report if any issue found." },
+      { title: "If outfeed not running, check if Milling has started. Refer to Milling Start-up procedure" }
+    ]
+  },
+
+  {
+    id: "start-hydrolyser",
+    category: "plant-start",
+    icon: "\u2697",
+    title: "Hydrolyser Start Up",
+    subtitle: "Hydrolyser",
+    status: "approved",
+    doc: "Version 1 \u00B7 issued 17.12.2025 \u00B7 valid on 5/10/2026. Check the company intranet before use to ensure it is still current.",
+    steps: [
+      { title: "Slightly open main steam valve, make sure condensate valve is open" },
+      { title: "After water stops and steam starts to come, close valve near main steam valve" },
+      { title: "Open main steam valve completely. Check all the screws, make sure there is no water or damp product on the screws" },
+      { title: "Open Hydrolyzer outfeed gate, select Manual then Open. Check there is no product or water inside, select back to Auto" },
+      { title: "Make sure everything on the HMI screen is in AUTO" },
+      { title: "Select desired infeed bin from Infeed page" },
+      { title: "Press \"Auto Start\" button. It should say \"Running\" now" },
+      { title: "When the temp is 65C+ it will automatically start the infeed" },
+      { title: "Visually check the product is coming out from the selected bin; if bin is empty change to another bin or stop" }
+    ]
+  },
+
+  {
+    id: "start-milling",
+    category: "plant-start",
+    icon: "\u2699",
+    title: "Milling Start Up",
+    subtitle: "Mills, screws and gates",
+    status: "approved",
+    doc: "Version 1 \u00B7 issued 17.12.2025 \u00B7 valid on 5/10/2026. Check the company intranet before use to ensure it is still current.",
+    steps: [
+      { title: "Make sure all the mill hammers and screen are in good condition before starting" },
+      { title: "Put all mills, screws and gates in AUTO. Touch on the desired bin number and select start milling" },
+      { title: "Wait for the mills to reach optimal speed and then all the screws should start automatically. Wait and ensure all screws are running normally before moving on" },
+      { title: "To reset any faults, touch reset faults or press the button on the top of the touch screen" }
+    ]
   }
 
 ];
@@ -5209,6 +5359,13 @@ var Plant = (function () {
   var PROC_ART = {
     "startup-plant":      "play",
     "shutdown-plant":     "stop",
+    "start-lamb":         "cooker",
+    "start-beef":         "cooker",
+    "start-separator":    "separator",
+    "start-blood":        "bloodplant",
+    "start-dryers":       "dryer",
+    "start-hydrolyser":   "evaporator",
+    "start-milling":      "mill",
     "line-intake":        "truck",
     "line-ovine":         "cooker",
     "line-mbm":           "mill",
@@ -5404,6 +5561,21 @@ var Plant = (function () {
     });
     h += "</div>";
 
+    /* ---- plant start: the real, signed-off start-up procedures ---- */
+    var starts = procsIn("plant-start");
+    if (starts.length) {
+      h += '<h2>Plant Start</h2>';
+      h += '<p class="lede">The official start-up procedures, step by step. Pick the one you are ' +
+           "starting.</p>";
+      h += '<div class="tile-grid">';
+      starts.forEach(function (p) {
+        h += tile("#/p/" + p.id, PROC_ART[p.id], p.icon, p.title, p.subtitle || "",
+                  { accent: accentFor("green"), tint: tintFor("green"),
+                    meta: p.steps.length + " steps" });
+      });
+      h += "</div>";
+    }
+
     /* ---- trouble + map ---- */
     h += '<h2>When you need it fast</h2><div class="tile-grid two">';
     h += tile("#/trouble", "wrench", "\u{1F527}", "Something has gone wrong",
@@ -5473,9 +5645,10 @@ var Plant = (function () {
                 meta: THEMES[theme].name });
     h += "</div>";
 
-    h += '<div class="callout info" style="margin-top:30px"><strong>This copy is not finished yet</strong>' +
-         "The steps you can see are examples to show the shape of the book. Go through them with " +
-         "your boss, correct them, and they become your real plant manual.</div>";
+    h += '<div class="callout info" style="margin-top:30px"><strong>Still being built</strong>' +
+         "The Plant Start procedures are the real, signed-off ones. The lines, support jobs and the " +
+         "whole-plant startup and shutdown further down are still example text to show the shape of " +
+         "the book, until they are checked with your boss.</div>";
 
     view.className = "view";
     view.innerHTML = h;
@@ -5502,6 +5675,11 @@ var Plant = (function () {
              "<h1>" + esc(p.title) + "</h1>" +
              '<p class="lede" style="margin:5px 0 0">' + esc(p.subtitle || "") + "</p>" +
            "</div></div>";
+
+    /* Controlled-document line, for the real signed-off procedures. */
+    if (p.doc) {
+      h += '<p class="lede" style="margin:-6px 0 18px;font-size:13px">' + esc(p.doc) + "</p>";
+    }
 
     if (p.summary) {
       h += '<div class="card"><h3>What this job is</h3><div>' + esc(p.summary) + "</div>";
@@ -8035,7 +8213,8 @@ var Plant = (function () {
     if (!rec) return;
     var w = window.open("", "_blank");
     if (!w) { alert("Your browser blocked the new tab."); return; }
-    w.document.write('<title>Step photo</title>' +
+    w.document.write('<title>Step photo</title>
+<!-- Single-file copy. Built by build-one-file.ps1 on 2026-10-23. Edit the folder, not this file. -->' +
       '<body style="margin:0;background:#111;display:grid;place-items:center;min-height:100vh">' +
       '<img src="' + rec.full + '" style="max-width:100%;max-height:100vh">');
     w.document.close();
@@ -8132,7 +8311,8 @@ var Plant = (function () {
 
     var h = "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\">" +
       '<meta name="viewport" content="width=device-width, initial-scale=1">' +
-      "<title>" + esc2(cfg.title) + "</title><style>" +
+      "<title>" + esc2(cfg.title) + "</title>
+<!-- Single-file copy. Built by build-one-file.ps1 on 2026-10-23. Edit the folder, not this file. --><style>" +
       "body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;" +
       "max-width:820px;margin:0 auto;padding:28px 20px 60px;color:#16211c;line-height:1.55}" +
       "h1{font-size:26px;margin:0 0 6px}" +

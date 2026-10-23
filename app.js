@@ -167,6 +167,13 @@ var Plant = (function () {
   var PROC_ART = {
     "startup-plant":      "play",
     "shutdown-plant":     "stop",
+    "start-lamb":         "cooker",
+    "start-beef":         "cooker",
+    "start-separator":    "separator",
+    "start-blood":        "bloodplant",
+    "start-dryers":       "dryer",
+    "start-hydrolyser":   "evaporator",
+    "start-milling":      "mill",
     "line-intake":        "truck",
     "line-ovine":         "cooker",
     "line-mbm":           "mill",
@@ -362,6 +369,21 @@ var Plant = (function () {
     });
     h += "</div>";
 
+    /* ---- plant start: the real, signed-off start-up procedures ---- */
+    var starts = procsIn("plant-start");
+    if (starts.length) {
+      h += '<h2>Plant Start</h2>';
+      h += '<p class="lede">The official start-up procedures, step by step. Pick the one you are ' +
+           "starting.</p>";
+      h += '<div class="tile-grid">';
+      starts.forEach(function (p) {
+        h += tile("#/p/" + p.id, PROC_ART[p.id], p.icon, p.title, p.subtitle || "",
+                  { accent: accentFor("green"), tint: tintFor("green"),
+                    meta: p.steps.length + " steps" });
+      });
+      h += "</div>";
+    }
+
     /* ---- trouble + map ---- */
     h += '<h2>When you need it fast</h2><div class="tile-grid two">';
     h += tile("#/trouble", "wrench", "\u{1F527}", "Something has gone wrong",
@@ -431,9 +453,10 @@ var Plant = (function () {
                 meta: THEMES[theme].name });
     h += "</div>";
 
-    h += '<div class="callout info" style="margin-top:30px"><strong>This copy is not finished yet</strong>' +
-         "The steps you can see are examples to show the shape of the book. Go through them with " +
-         "your boss, correct them, and they become your real plant manual.</div>";
+    h += '<div class="callout info" style="margin-top:30px"><strong>Still being built</strong>' +
+         "The Plant Start procedures are the real, signed-off ones. The lines, support jobs and the " +
+         "whole-plant startup and shutdown further down are still example text to show the shape of " +
+         "the book, until they are checked with your boss.</div>";
 
     view.className = "view";
     view.innerHTML = h;
@@ -460,6 +483,11 @@ var Plant = (function () {
              "<h1>" + esc(p.title) + "</h1>" +
              '<p class="lede" style="margin:5px 0 0">' + esc(p.subtitle || "") + "</p>" +
            "</div></div>";
+
+    /* Controlled-document line, for the real signed-off procedures. */
+    if (p.doc) {
+      h += '<p class="lede" style="margin:-6px 0 18px;font-size:13px">' + esc(p.doc) + "</p>";
+    }
 
     if (p.summary) {
       h += '<div class="card"><h3>What this job is</h3><div>' + esc(p.summary) + "</div>";

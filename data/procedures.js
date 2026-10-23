@@ -750,6 +750,156 @@ window.PLANT_PROCEDURES = [
         checks: ["Treatment still running during cool-down", "Plant confirmed cold and clear before stopping fans", "Stop time recorded"]
       }
     ]
+  },
+
+  /* ===========================================================
+     PLANT START — the real, signed-off start-up procedures.
+     -----------------------------------------------------------
+     Typed word for word from the ATP Quality Management System
+     sheets the operator photographed (category "plant-start").
+     Version 1. Steps renumbered 1,2,3... (some sheets skipped
+     numbers; the missing steps are not on the sheets yet).
+     Each procedure's `doc` line carries the controlled-document
+     details so the page shows them, like the paper does.
+     =========================================================== */
+
+  {
+    id: "start-lamb",
+    category: "plant-start",
+    icon: "\u{1F411}",
+    title: "Lamb Raw Material Start Up",
+    subtitle: "Plant 1 raw material, ovine",
+    status: "approved",
+    doc: "Version 1 \u00B7 issued 25.11.2025 \u00B7 valid on 5/10/2026. Check the company intranet before use to ensure it is still current.",
+    summary: "The official Plant 1 (lamb) raw material start-up. Some step numbers were missing from the sheet; those steps are not here yet.",
+    steps: [
+      { title: "Make sure boilers are running, and the steam pressure is 700+ kPa" },
+      { title: "Press Auto Start on Plant 1 Raw material page" },
+      { title: "Start Lamb decanter" },
+      { title: "Make sure cooker is running, open the manual steam valve" },
+      { title: "Wait for the cooker's temperature to reach 85+ C before discharging" }
+    ]
+  },
+
+  {
+    id: "start-beef",
+    category: "plant-start",
+    icon: "\u{1F404}",
+    title: "Beef Raw Material Start Up",
+    subtitle: "Plant 2 raw material, beef",
+    status: "approved",
+    doc: "Version 1 \u00B7 issued 17.12.2025 \u00B7 valid on 5/10/2026. Check the company intranet before use to ensure it is still current.",
+    summary: "The official Plant 2 (beef) raw material start-up. Some step numbers were missing from the sheet; those steps are not here yet.",
+    steps: [
+      { title: "Make sure boilers are running, and the steam pressure is 700+ kPa" },
+      { title: "Press Auto Start on Plant 2 Raw material page" },
+      { title: "Start beef mincer manually" },
+      { title: "Start Beef decanter" },
+      { title: "Make sure cookers are running, open the manual steam valve" },
+      { title: "Wait for the cookers' temperatures to reach 85+ C before discharging" }
+    ]
+  },
+
+  {
+    id: "start-separator",
+    category: "plant-start",
+    icon: "\u{1F300}",
+    title: "Separator Start Up",
+    subtitle: "Tallow separator",
+    status: "approved",
+    doc: "Version 1 \u00B7 issued 17.12.2025 \u00B7 valid on 5/10/2026. Check the company intranet before use to ensure it is still current.",
+    steps: [
+      { title: "Make sure boilers are running, and the steam pressure is 700+ kPa" },
+      { title: "Make sure main steam valve and 95C system valve from main header are both open" },
+      { title: "Turn the 95C system ON. The light should turn green, wait for temps to reach 95C" },
+      { title: "Open the safety hot water valve behind the separator" },
+      { title: "Reset any alarms on alarm page before pressing start" },
+      { title: "Press START and wait for the RPMs to reach 5000" },
+      { title: "Make sure valve under the feed tank is open and the line is unblocked" },
+      { title: "Check the feed tank temp is 90+ C. Press PRODUCTION on HMI screen" },
+      { title: "Check the flow rate, check oil is physically coming out from Sep discharge. Hear for the bowl closing shooting sound" },
+      { title: "Make sure fat trap outfeed pump is ON" }
+    ]
+  },
+
+  {
+    id: "start-blood",
+    category: "plant-start",
+    icon: "\u{1FA78}",
+    title: "Blood Start Up",
+    subtitle: "Blood plant and blood decanter",
+    status: "approved",
+    doc: "Version 1 \u00B7 issued 17.12.2025 \u00B7 valid on 5/10/2026. Check the company intranet before use to ensure it is still current.",
+    steps: [
+      { title: "Make sure both boilers are running, and we have enough steam pressure 700+ kPa" },
+      { title: "On Blood Plant page, check pump and everything else is in AUTO" },
+      { title: "Press \"Blood plant Enable\" for 5 seconds. The top of the page should say \"Plant Enabled\"" },
+      { title: "Check the Alfa Laval HMI in switch room for any alarms or faults",
+        detail: "If the decanter has not started automatically, check the alarm page, reset all alarms and manually press Start for 5 seconds on the HMI screen, and wait for the decanter to reach 3300+ RPM. When the screen says Production it is ready to start." },
+      { title: "On Plant HMI, check flow and temperature readings",
+        detail: "Temperature should be 85+ C and flow should be consistent." },
+      { title: "After 5 mins, physically check all screws running and make sure dry blood is coming out of the blood decanter" }
+    ]
+  },
+
+  {
+    id: "start-dryers",
+    category: "plant-start",
+    icon: "\u{1F525}",
+    title: "Dryers Start Up",
+    subtitle: "Dryer infeed, dryers and outfeed",
+    status: "approved",
+    doc: "Version 1 \u00B7 issued 17.12.2025 \u00B7 valid on 5/10/2026. Check the company intranet before use to ensure it is still current.",
+    summary: "The official dryers start-up. Some step numbers were missing from the sheet; those steps are not here yet.",
+    steps: [
+      { title: "Touch Dryer motor icon and press AUTO" },
+      { title: "Press Dryer Infeed Auto Start on Dryer INFEED page" },
+      { title: "Check all the screws, make sure all infeed screws are running physically" },
+      { title: "Make sure all Screws and Gates on DRYER INFEED page are in AUTO" },
+      { title: "Make sure correct dryer has been selected for correct plant",
+        detail: "E.g. Dryer 1 for ovine and Dryer 2 & 3 for beef (under normal circumstances)." },
+      { title: "Make sure outfeed screws are in AUTO mode (can be checked from DRYER OUTFEED page)" },
+      { title: "Start Dryer from the milling page as well",
+        detail: "Wait for the Amps and Temp to go up to Set value and check if outfeed screw has started. Physically check the product coming out for any abnormality and report if any issue found." },
+      { title: "If outfeed not running, check if Milling has started. Refer to Milling Start-up procedure" }
+    ]
+  },
+
+  {
+    id: "start-hydrolyser",
+    category: "plant-start",
+    icon: "\u2697",
+    title: "Hydrolyser Start Up",
+    subtitle: "Hydrolyser",
+    status: "approved",
+    doc: "Version 1 \u00B7 issued 17.12.2025 \u00B7 valid on 5/10/2026. Check the company intranet before use to ensure it is still current.",
+    steps: [
+      { title: "Slightly open main steam valve, make sure condensate valve is open" },
+      { title: "After water stops and steam starts to come, close valve near main steam valve" },
+      { title: "Open main steam valve completely. Check all the screws, make sure there is no water or damp product on the screws" },
+      { title: "Open Hydrolyzer outfeed gate, select Manual then Open. Check there is no product or water inside, select back to Auto" },
+      { title: "Make sure everything on the HMI screen is in AUTO" },
+      { title: "Select desired infeed bin from Infeed page" },
+      { title: "Press \"Auto Start\" button. It should say \"Running\" now" },
+      { title: "When the temp is 65C+ it will automatically start the infeed" },
+      { title: "Visually check the product is coming out from the selected bin; if bin is empty change to another bin or stop" }
+    ]
+  },
+
+  {
+    id: "start-milling",
+    category: "plant-start",
+    icon: "\u2699",
+    title: "Milling Start Up",
+    subtitle: "Mills, screws and gates",
+    status: "approved",
+    doc: "Version 1 \u00B7 issued 17.12.2025 \u00B7 valid on 5/10/2026. Check the company intranet before use to ensure it is still current.",
+    steps: [
+      { title: "Make sure all the mill hammers and screen are in good condition before starting" },
+      { title: "Put all mills, screws and gates in AUTO. Touch on the desired bin number and select start milling" },
+      { title: "Wait for the mills to reach optimal speed and then all the screws should start automatically. Wait and ensure all screws are running normally before moving on" },
+      { title: "To reset any faults, touch reset faults or press the button on the top of the touch screen" }
+    ]
   }
 
 ];

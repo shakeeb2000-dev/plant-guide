@@ -3,7 +3,7 @@
    throws the old copy away and pulls everything down fresh.
    Keep this version in step with version.js and version.json. */
 
-var VERSION = "13";
+var VERSION = "14";
 var CACHE = "plant-guide-v" + VERSION;
 
 var FILES = [
